@@ -1,11 +1,9 @@
-Here is the updated HTML document with the extra description text removed and the quantity inputs configured to accept decimals (0.5, 1.5) while the increment/decrement buttons step by whole numbers (1, 2, 3).
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Auyl Purchasing Management · Сводный заказ</title>
+    <title>Auyl Purchasing Management</title>
     <style>
         * {
             margin: 0;
@@ -14,51 +12,43 @@ Here is the updated HTML document with the extra description text removed and th
         }
 
         body {
-            background: #f4f7f2;
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
-            padding: 1.5rem;
-            color: #1c2e1f;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 1rem;
+            color: #1a1a1a;
         }
 
         .main-container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* header with logo */
+        /* header - centered */
         .brand {
             text-align: center;
             margin-bottom: 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.5rem;
         }
 
         .logo-container {
             display: flex;
             justify-content: center;
-            align-items: center;
         }
 
         .logo-img {
-            max-width: 60px;
+            max-width: 48px;
             height: auto;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease;
-        }
-
-        .logo-img:hover {
-            transform: scale(1.02);
+            border-radius: 8px;
         }
 
         .brand h1 {
-            font-size: 2.4rem;
-            background: linear-gradient(135deg, #2c5e2d, #6b8c42, #e0a822);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: -0.3px;
         }
 
         .supplier-tabs {
@@ -66,53 +56,62 @@ Here is the updated HTML document with the extra description text removed and th
             flex-wrap: wrap;
             gap: 0.5rem;
             margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 0.75rem;
             justify-content: center;
-            max-height: 200px;
-            overflow-y: auto;
-            padding-bottom: 0.5rem;
         }
 
         .tab-btn {
-            background: #e8ede2;
+            background: none;
             border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: 0.15s;
-            color: #2d4a2a;
+            color: #666;
+        }
+
+        .tab-btn:hover {
+            background: #f0f0f0;
+            color: #1a1a1a;
         }
 
         .tab-btn.active {
-            background: #2c7840;
+            background: #1a1a1a;
             color: white;
         }
 
         .category-section {
             background: white;
-            border-radius: 1.5rem;
-            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
             overflow: hidden;
-            border: 1px solid #e2ecd9;
+            border: 1px solid #eaeaea;
         }
 
         .category-header {
-            background: #2a5930;
-            color: white;
-            padding: 0.7rem 1.2rem;
-            font-size: 1.2rem;
-            font-weight: 700;
+            background: white;
+            color: #1a1a1a;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .category-header span:first-child {
+            font-size: 1rem;
         }
 
         .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 0.5rem;
-            padding: 1rem;
+            gap: 0;
+            padding: 0;
         }
 
         .item-row {
@@ -120,45 +119,73 @@ Here is the updated HTML document with the extra description text removed and th
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            padding: 0.4rem;
-            border-bottom: 1px dashed #dde6d4;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
         }
 
         .item-name {
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: #1b3b1f;
+            font-weight: 400;
+            font-size: 0.875rem;
+            color: #1a1a1a;
             flex: 2;
             min-width: 140px;
         }
 
         .item-unit {
-            background: #eef3e8;
-            padding: 0.15rem 0.5rem;
-            border-radius: 20px;
+            background: #f0f0f0;
+            padding: 0.125rem 0.5rem;
+            border-radius: 12px;
             font-size: 0.65rem;
-            font-weight: 600;
-            color: #3f6b3a;
-            margin-left: 0.3rem;
+            font-weight: 500;
+            color: #666;
+            margin-left: 0.5rem;
         }
 
         .item-control {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            background: #fefcf5;
-            padding: 0.15rem 0.6rem;
-            border-radius: 40px;
-            border: 1px solid #dde6cf;
+            gap: 0.25rem;
+            background: #fafafa;
+            padding: 0.125rem 0.25rem;
+            border-radius: 32px;
+            border: 1px solid #eaeaea;
+        }
+
+        .control-btn {
+            background: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #1a1a1a;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: #eaeaea;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
         }
 
         .qty-input {
-            width: 80px;
+            width: 65px;
             text-align: center;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 0.3rem 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.25rem 0;
             border: none;
             background: transparent;
             font-family: monospace;
@@ -166,21 +193,14 @@ Here is the updated HTML document with the extra description text removed and th
 
         .qty-input:focus {
             outline: none;
-            border-bottom: 2px solid #5f8b4c;
-        }
-
-        /* custom spinner buttons - make step behave nicely */
-        .qty-input::-webkit-inner-spin-button, 
-        .qty-input::-webkit-outer-spin-button {
-            opacity: 0.5;
         }
 
         .order-panel {
-            background: #fefaf0;
-            border-radius: 1.5rem;
-            padding: 1rem 1.2rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
             margin-top: 1rem;
-            border: 1px solid #e0dac8;
+            border: 1px solid #eaeaea;
         }
 
         .panel-header {
@@ -188,98 +208,154 @@ Here is the updated HTML document with the extra description text removed and th
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e5dcc8;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .panel-header h2 {
-            font-size: 1.3rem;
-            color: #2b532b;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .live-badge {
+            background: #f0f0f0;
+            font-size: 0.7rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 20px;
+            font-weight: normal;
+            margin-left: 0.5rem;
         }
 
         .action-group {
             display: flex;
             gap: 0.5rem;
-            flex-wrap: wrap;
         }
 
         .btn {
             border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
-            font-weight: 600;
+            padding: 0.375rem 0.875rem;
+            border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
             font-size: 0.75rem;
-        }
-
-        .btn-primary {
-            background: #3f7846;
-            color: white;
+            transition: 0.1s;
         }
 
         .btn-secondary {
-            background: #e0dbc9;
-            color: #2e482a;
+            background: #f0f0f0;
+            color: #1a1a1a;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e5e5;
+        }
+
+        .order-summary-preview {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #f0f0f0;
+            color: #555;
         }
 
         .copy-section {
-            background: #2d3528;
-            border-radius: 1.2rem;
+            background: #fafafa;
+            border-radius: 12px;
             margin-top: 1rem;
-            padding: 0.8rem;
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+        }
+
+        .copy-block {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .copy-block:last-child {
+            border-bottom: none;
+        }
+
+        .copy-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 0.8rem;
-            align-items: stretch;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .copy-header h3 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .copy-header h3 span {
+            font-weight: normal;
+            color: #888;
+            font-size: 0.7rem;
         }
 
         .copy-field {
-            flex: 3;
-            background: #1e241b;
-            border-radius: 1rem;
-            padding: 0.7rem;
-            color: #f0f7e6;
+            background: white;
+            border-radius: 8px;
+            padding: 0.6rem;
+            color: #1a1a1a;
             font-family: monospace;
             font-size: 0.7rem;
             white-space: pre-wrap;
-            max-height: 200px;
+            max-height: 140px;
             overflow-y: auto;
+            margin-bottom: 0.5rem;
+            border: 1px solid #eaeaea;
         }
 
         .copy-actions {
             display: flex;
-            flex-direction: column;
             gap: 0.5rem;
-            justify-content: center;
+            justify-content: flex-end;
         }
 
         .btn-copy {
-            background: #7dab5b;
+            background: #1a1a1a;
             color: white;
             border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
-            font-weight: bold;
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
-        }
-
-        .live-badge {
-            background: #f1f2e6;
             font-size: 0.7rem;
-            padding: 0.15rem 0.6rem;
-            border-radius: 30px;
         }
 
-        .order-summary-preview {
-            background: #eef3e4;
-            border-radius: 1rem;
-            padding: 0.6rem 0.8rem;
-            margin-bottom: 0.8rem;
-            font-size: 0.75rem;
-            max-height: 120px;
-            overflow-y: auto;
+        .btn-copy-sm {
+            background: #333;
+        }
+
+        .btn-copy:hover {
+            background: #000;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 1.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .developer-credit {
+            margin-top: 0.25rem;
+        }
+
+        .developer-credit a {
+            color: #666;
+            text-decoration: none;
         }
 
         .toast-msg {
@@ -287,7 +363,7 @@ Here is the updated HTML document with the extra description text removed and th
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1e2a1c;
+            background: #1a1a1a;
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 40px;
@@ -295,37 +371,10 @@ Here is the updated HTML document with the extra description text removed and th
             z-index: 1000;
         }
 
-        footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #8a9a7a;
-            margin-top: 1.5rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #d4dec9;
-        }
-
-        .developer-credit {
-            margin-top: 0.3rem;
-            font-size: 0.65rem;
-            color: #6b8368;
-        }
-
-        .developer-credit a {
-            color: #4a7045;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .developer-credit a:hover {
-            text-decoration: underline;
-        }
-
         @media (max-width: 680px) {
-            body { padding: 0.8rem; }
+            body { padding: 0.75rem; }
             .items-grid { grid-template-columns: 1fr; }
-            .copy-section { flex-direction: column; }
-            .logo-img { max-width: 50px; }
-            .brand h1 { font-size: 1.8rem; }
+            .item-row { flex-direction: row; flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -335,7 +384,7 @@ Here is the updated HTML document with the extra description text removed and th
         <div class="logo-container">
             <img src="logo.jpg" alt="Auyl Logo" class="logo-img" onerror="this.style.display='none'">
         </div>
-        <h1>🏔️ Auyl Purchasing Management</h1>
+        <h1>Auyl Purchasing Management</h1>
     </div>
 
     <div class="supplier-tabs" id="supplierTabs"></div>
@@ -343,125 +392,148 @@ Here is the updated HTML document with the extra description text removed and th
 
     <div class="order-panel">
         <div class="panel-header">
-            <h2>📋 текущий заказ <span class="live-badge" id="itemCounterBadge">0 позиций</span></h2>
+            <h2>Текущий заказ <span class="live-badge" id="itemCounterBadge">0 позиций</span></h2>
             <div class="action-group">
-                <button class="btn btn-secondary" id="resetAllOrdersBtn">⟳ сбросить всё</button>
+                <button class="btn btn-secondary" id="resetAllOrdersBtn">Сбросить всё</button>
             </div>
         </div>
-        <div class="order-summary-preview" id="quickSummary">✨ нет выбранных товаров</div>
+        <div class="order-summary-preview" id="quickSummary">Нет выбранных товаров</div>
+
         <div class="copy-section">
-            <div class="copy-field" id="copyTextField">// заказ будет сформирован здесь</div>
-            <div class="copy-actions">
-                <button class="btn-copy" id="copyTextBtn">📋 копировать текст</button>
-                <button class="btn-secondary" id="refreshCopyBtn">⟳ обновить поле</button>
+            <div class="copy-block">
+                <div class="copy-header">
+                    <h3>Заказ для <span id="currentSupplierName">FOODOO</span> <span>(только этот поставщик)</span></h3>
+                    <div class="copy-actions">
+                        <button class="btn-copy btn-copy-sm" id="copyCurrentSupplierBtn">Копировать</button>
+                        <button class="btn btn-secondary" id="refreshCurrentBtn" style="background:#e5e5e5;">Обновить</button>
+                    </div>
+                </div>
+                <div class="copy-field" id="currentSupplierCopyField">// заказ для текущего поставщика</div>
+            </div>
+            <div class="copy-block">
+                <div class="copy-header">
+                    <h3>Общий заказ <span>(все поставщики)</span></h3>
+                    <div class="copy-actions">
+                        <button class="btn-copy" id="copyOverallBtn">Копировать</button>
+                        <button class="btn btn-secondary" id="refreshOverallBtn">Обновить</button>
+                    </div>
+                </div>
+                <div class="copy-field" id="overallCopyField">// общий заказ по всем поставщикам</div>
             </div>
         </div>
     </div>
     <footer>
         <div class="developer-credit">
-            разработано <strong>Yeldar Akimkhan</strong> · <a href="mailto:eldar@chef.net">eldar@chef.net</a>
+            Yeldar Akimkhan · <a href="mailto:eldar@chef.net">eldar@chef.net</a>
         </div>
     </footer>
 </div>
 
 <script>
     // ============================================================
-    // Auyl Purchasing Management — полный каталог поставщиков
-    // Поддержка десятичных количеств (0.5, 1.5) но кнопки +/- шагают на 1
+    // Auyl Purchasing Management — упрощенный формат заказа
+    // Формат: Название поставщика, затем дата (завтрашняя), затем товары
     // ============================================================
+
+    // функция для получения завтрашней даты в формате ДД.ММ.ГГГГ
+    function getTomorrowDate() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const day = String(tomorrow.getDate()).padStart(2, '0');
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const year = tomorrow.getFullYear();
+        return `${day}.${month}.${year}`;
+    }
+
     const supplierCatalogs = {
         foodoo: { 
             name: "FOODOO", 
             categories: [
-                { name: "🍅 Овощи", icon: "🍅", items: ["Помидоры розовые сладкие","Томаты красные","Черри красные","Черри желтые","Огурцы","Баклажан","Перец сладкий красный","Перец светофор"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🌿 Зелень", icon: "🌿", items: ["Базилик","Петрушка","Кинза","Укроп","Мята","Лук зеленый","Джусай","Чесночные стрелки","Стебель сельдерея"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🌶 Специи", icon: "🌶", items: ["Перец полугорький","Перец чили","Имбирь корень","Тмин","Розмарин"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🥕 Корнеплоды", icon: "🥕", items: ["Картофель крупный","Картофель бэби","Батат крупный","Морковь красная","Морковь желтая","Свекла","Редька"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Овощи", icon: "🍅", items: ["Помидоры розовые сладкие","Томаты красные","Черри красные","Черри желтые","Огурцы","Баклажан","Перец сладкий красный","Перец светофор"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Зелень", icon: "🌿", items: ["Базилик","Петрушка","Кинза","Укроп","Мята","Лук зеленый","Джусай","Чесночные стрелки","Стебель сельдерея"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Специи", icon: "🌶", items: ["Перец полугорький","Перец чили","Имбирь корень","Тмин","Розмарин"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Корнеплоды", icon: "🥕", items: ["Картофель крупный","Картофель бэби","Батат крупный","Морковь красная","Морковь желтая","Свекла","Редька"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         jandos: { 
             name: "Jandos", 
             categories: [
-                { name: "🥩 Говядина", icon: "🥩", items: ["Мозговые кости","Вырезка говядина","Говядина кости Демик","Әсіп"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🐎 Конина", icon: "🐎", items: ["Конина суп набор","Казы классический","Жая конская"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🐑 Баранина", icon: "🐑", items: ["Шея ягненка","Баранина тушка"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Говядина", icon: "🥩", items: ["Мозговые кости","Вырезка говядина","Говядина кости Демик","Әсіп"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Конина", icon: "🐎", items: ["Конина суп набор","Казы классический","Жая конская"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Баранина", icon: "🐑", items: ["Шея ягненка","Баранина тушка"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         seragali: { 
             name: "Seragali", 
             categories: [
-                { name: "🐑 Баранина", icon: "🐑", items: ["Мякоть баранины","Баранина коробка обваленная","Суп набор баран","Шея ягненка","Голень ягненка 600-700гр"].map(i=>({name:i,unit:i.includes("Голень")?"шт":"кг"})) },
-                { name: "🐎 Конина", icon: "🐎", items: ["Щеки коня","Жая конская","Суп набор конина","Жир конский","Конина кишки","Конина коробка обваленная","Ребра конины на кости","Казы классический"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🥩 Говядина", icon: "🥩", items: ["Говядина кости демик","Вырезка говядина","Мозговые кости пиленные"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Баранина", icon: "🐑", items: ["Мякоть баранины","Баранина коробка обваленная","Суп набор баран","Шея ягненка","Голень ягненка 600-700гр"].map(i=>({name:i,unit:i.includes("Голень")?"шт":"кг"})) },
+                { name: "Конина", icon: "🐎", items: ["Щеки коня","Жая конская","Суп набор конина","Жир конский","Конина кишки","Конина коробка обваленная","Ребра конины на кости","Казы классический"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Говядина", icon: "🥩", items: ["Говядина кости демик","Вырезка говядина","Мозговые кости пиленные"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         dossco: { 
             name: "Doss CO", 
             categories: [
-                { name: "🍿 Снеки", icon: "🍿", items: ["Чипсы Lays","Сухарики","Орешки","Попкорн","Семечки"].map(i=>({name:i,unit:"шт"})) },
-                { name: "🥫 Консервы", icon: "🥫", items: ["Тушенка","Сайра","Кукуруза","Горошек","Оливки"].map(i=>({name:i,unit:"шт"})) },
-                { name: "🥩 Мясо", icon: "🥩", items: ["Мозговые кости","Голень ягненка","Коробка ягненка","Коробка конины"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Мясо", icon: "🥩", items: ["Мозговые кости","Голень ягненка","Коробка ягненка","Коробка конины"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         foodhouse: { 
             name: "FOOD HOUSE", 
             categories: [
-                { name: "🍫 Шоколад", icon: "🍫", items: ["Белый шоколад Callebaut №W2","Молочный шоколад Callebaut №823","Темный шоколад Callebaut №811","Какао масло Callebaut","Вафельная крошка Callebaut"].map(i=>({name:i,unit:"кг"})) },
-                { name: "🥫 Соусы/ингредиенты", icon: "🥫", items: ["Шрирача","Желатин листовой","Сахар тростниковый","Моцарелла для пиццы 2.2","Уксус рисовый 20л","Соевый соус 20л","Миндальная мука","Ваниль стручки","Грибы белые С/М","Кунжут белый","Кунжут черный"].map(i=>({name:i,unit:i.includes("20л")?"л":"кг"})) }
+                { name: "Шоколад", icon: "🍫", items: ["Белый шоколад Callebaut №W2","Молочный шоколад Callebaut №823","Темный шоколад Callebaut №811","Какао масло Callebaut","Вафельная крошка Callebaut"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Соусы и ингредиенты", icon: "🥫", items: ["Шрирача","Желатин листовой","Сахар тростниковый","Моцарелла для пиццы 2.2","Уксус рисовый 20л","Соевый соус 20л","Миндальная мука","Ваниль стручки","Грибы белые С/М","Кунжут белый","Кунжут черный"].map(i=>({name:i,unit:i.includes("20л")?"л":"кг"})) }
             ] 
         },
         kazbeef: { 
             name: "KazBeef", 
             categories: [
-                { name: "🥩 Говядина", icon: "🥩", items: ["Стейк мясника","Мозговые кости"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Говядина", icon: "🥩", items: ["Стейк мясника","Мозговые кости"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         sweetpremium: { 
             name: "Sweet Premium", 
             categories: [
-                { name: "🧈 Молочные", icon: "🧈", items: ["Сливочное масло 82%"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Молочные продукты", icon: "🧈", items: ["Сливочное масло 82%"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         metro: { 
             name: "Metro", 
             categories: [
-                { name: "❄️ Минус", icon: "❄️", items: ["Шея говяжья kazbeef","Ребра говяжьи kazbeef","Спиной отруб kazbeef","Цыпленок Алель тушка","Шпинат C/M","Черная смородина С/М","Черника С/М"].map(i=>({name:i,unit:"кг"})) },
-                { name: "📦 Сухой", icon: "📦", items: ["Мука ДаниНан 10 кг","Масло оливковое","Масло растительное","Соль морская мелкая","Аралтұз","Сахар песок 25кг","Сахарная Пудра","Сода пищевая","Крахмал кукурузный","Крахмал картофельный","Томат цинказ","Гранатовый сок","Кукуруза конс. Bonduelle","Уксус яблочный","Уксус 70%","Красный винный уксус","Дрожжи pakmaya","Халва"].map(i=>({name:i,unit:i.includes("сок")?"л":"кг"})) },
-                { name: "👨‍🍳 Staff", icon: "👨‍🍳", items: ["Рис баракат","Лапша яичная Мия","Макароны витки","Гречка"].map(i=>({name:i,unit:"кг"})) },
-                { name: "➕ Плюс", icon: "➕", items: ["Яйцо","Йогурт греческий","Фета белая","Сметана 20%","Сметана 25%","Сливки 33%","Молоко Laсtel","Креметта","Яблоки грин смит","Апельсин","Сливки масло President","Кефир"].map(i=>({name:i,unit:i==="Яйцо"?"шт":"кг"})) }
+                { name: "Минус (заморозка)", icon: "❄️", items: ["Шея говяжья kazbeef","Ребра говяжьи kazbeef","Спиной отруб kazbeef","Цыпленок Алель тушка","Шпинат C/M","Черная смородина С/М","Черника С/М"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Сухой склад", icon: "📦", items: ["Мука ДаниНан 10 кг","Масло оливковое","Масло растительное","Соль морская мелкая","Аралтұз","Сахар песок 25кг","Сахарная Пудра","Сода пищевая","Крахмал кукурузный","Крахмал картофельный","Томат цинказ","Гранатовый сок","Кукуруза конс. Bonduelle","Уксус яблочный","Уксус 70%","Красный винный уксус","Дрожжи pakmaya","Халва"].map(i=>({name:i,unit:i.includes("сок")?"л":"кг"})) },
+                { name: "Staff (кухня)", icon: "👨‍🍳", items: ["Рис баракат","Лапша яичная Мия","Макароны витки","Гречка"].map(i=>({name:i,unit:"кг"})) },
+                { name: "Плюс (молочка/фрукты)", icon: "➕", items: ["Яйцо","Йогурт греческий","Фета белая","Сметана 20%","Сметана 25%","Сливки 33%","Молоко Laсtel","Креметта","Яблоки грин смит","Апельсин","Сливки масло President","Кефир"].map(i=>({name:i,unit:i==="Яйцо"?"шт":"кг"})) }
             ] 
         },
         ayakaz: { 
             name: "Аяказ", 
             categories: [
-                { name: "🌿 Зелень", icon: "🌿", items: ["Мини шпинат","Салат Ромейн","Батат"].map(i=>({name:i,unit:"кг"})) }
+                { name: "Зелень", icon: "🌿", items: ["Мини шпинат","Салат Ромейн","Батат"].map(i=>({name:i,unit:"кг"})) }
             ] 
         },
         grillpro: { 
             name: "Гриль ПРО", 
             categories: [
-                { name: "🔥 Угли", icon: "🔥", items: ["Угли камадо (1 коробка)"].map(i=>({name:i,unit:"коробка"})) }
+                { name: "Угли", icon: "🔥", items: ["Угли камадо (1 коробка)"].map(i=>({name:i,unit:"коробка"})) }
             ] 
         },
         preorder: { 
             name: "Предзаказ", 
             categories: [
-                { name: "🐔 Мясо/рыба", icon: "🐔", items: ["Цыпленок 1,1-1,2кг","Форель радужная 300-350гр"].map(i=>({name:i,unit:i.includes("Цыпленок")?"кг":"шт"})) }
+                { name: "Мясо и рыба", icon: "🐔", items: ["Цыпленок 1,1-1,2кг","Форель радужная 300-350гр"].map(i=>({name:i,unit:i.includes("Цыпленок")?"кг":"шт"})) }
             ] 
         },
         hozyain: { 
             name: "Хозяйственные товары", 
             categories: [
-                { name: "🧹 Расходники", icon: "🧹", items: ["Шапки одноразовые","Стрейч","Бумага для выпечки","Алюминиевая фольга","Банки 0,5","Банки 1 л","Контейнеры 0,250","Кондитерские мешки","Антисептик 5л","Микрофибра","Вакуумный пакет 250х350","Вакуумный пакет 100х250","Вакуумный пакет 160х250","Вакуумный пакет 300х400","Боксы 0,5л","Боксы 1л","Боксы 0,250мл","Стикер ценник","Вафельное полотно"].map(i=>({name:i,unit:i.includes("Антисептик")?"л":"шт"})) }
+                { name: "Расходные материалы", icon: "🧹", items: ["Шапки одноразовые","Стрейч","Бумага для выпечки","Алюминиевая фольга","Банки 0,5","Банки 1 л","Контейнеры 0,250","Кондитерские мешки","Антисептик 5л","Микрофибра","Вакуумный пакет 250х350","Вакуумный пакет 100х250","Вакуумный пакет 160х250","Вакуумный пакет 300х400","Боксы 0,5л","Боксы 1л","Боксы 0,250мл","Стикер ценник","Вафельное полотно"].map(i=>({name:i,unit:i.includes("Антисептик")?"л":"шт"})) }
             ] 
         }
     };
 
-    // хранилище заказов (ключ: supplierId|catIdx|itemIdx)
     let orderMap = new Map();
     function getKey(supId, catIdx, itemIdx) { return `${supId}|${catIdx}|${itemIdx}`; }
 
-    // инициализация нулями
     for (let [supId, sup] of Object.entries(supplierCatalogs)) {
         sup.categories.forEach((cat, ci) => cat.items.forEach((_, ii) => orderMap.set(getKey(supId, ci, ii), 0)));
     }
@@ -475,7 +547,6 @@ Here is the updated HTML document with the extra description text removed and th
         return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
     }
 
-    // отрисовка вкладок
     function renderTabs() {
         tabsContainer.innerHTML = "";
         for (let [id, sup] of Object.entries(supplierCatalogs)) {
@@ -487,110 +558,45 @@ Here is the updated HTML document with the extra description text removed and th
                 currentSupplier = id;
                 document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
+                document.getElementById("currentSupplierName").textContent = sup.name;
                 renderCurrentSupplier();
             };
             tabsContainer.appendChild(btn);
         }
     }
 
-    // создаем кастомный контрол с + и - кнопками для каждого товара (шаг 1, но можно вводить любые числа)
-    function createQuantityControl(key, currentValue) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "item-control";
+    // НОВЫЙ ФОРМАТ ЗАКАЗА ДЛЯ ОДНОГО ПОСТАВЩИКА
+    function generateSupplierOrderText(supplierId) {
+        const sup = supplierCatalogs[supplierId];
+        if (!sup) return "Поставщик не найден";
         
-        const minusBtn = document.createElement("button");
-        minusBtn.textContent = "−";
-        minusBtn.style.cssText = "background:none; border:none; font-size:1.2rem; font-weight:bold; cursor:pointer; width:28px; color:#5f7e55;";
-        minusBtn.type = "button";
+        const tomorrowDate = getTomorrowDate();
+        let lines = [`${sup.name}`, `${tomorrowDate}`, `───────────────────────────────────`];
+        let hasAny = false, totalItems = 0;
         
-        const input = document.createElement("input");
-        input.type = "number";
-        input.step = "0.1";
-        input.value = currentValue;
-        input.min = "0";
-        input.className = "qty-input";
-        
-        const plusBtn = document.createElement("button");
-        plusBtn.textContent = "+";
-        plusBtn.style.cssText = "background:none; border:none; font-size:1.2rem; font-weight:bold; cursor:pointer; width:28px; color:#5f7e55;";
-        plusBtn.type = "button";
-        
-        // функция обновления значения
-        function setValue(newVal) {
-            let val = parseFloat(newVal);
-            if (isNaN(val) || val < 0) val = 0;
-            // округляем до 2 знаков для красоты
-            val = Math.round(val * 100) / 100;
-            input.value = val;
-            orderMap.set(key, val);
-            updateAllSummaries();
-        }
-        
-        minusBtn.onclick = () => {
-            let current = parseFloat(input.value);
-            if (isNaN(current)) current = 0;
-            let newVal = current - 1;
-            if (newVal < 0) newVal = 0;
-            setValue(newVal);
-        };
-        
-        plusBtn.onclick = () => {
-            let current = parseFloat(input.value);
-            if (isNaN(current)) current = 0;
-            setValue(current + 1);
-        };
-        
-        input.addEventListener("input", (e) => {
-            let val = parseFloat(e.target.value);
-            if (isNaN(val)) val = 0;
-            if (val < 0) val = 0;
-            val = Math.round(val * 100) / 100;
-            orderMap.set(key, val);
-            updateAllSummaries();
-            // синхронизируем отображение
-            if (input.value != val) input.value = val;
-        });
-        
-        wrapper.appendChild(minusBtn);
-        wrapper.appendChild(input);
-        wrapper.appendChild(plusBtn);
-        return wrapper;
-    }
-
-    // отрисовка активного поставщика с кастомными контролами
-    function renderCurrentSupplier() {
-        const sup = supplierCatalogs[currentSupplier];
-        if (!sup) return;
-        container.innerHTML = "";
-        sup.categories.forEach((cat, catIdx) => {
-            const section = document.createElement("div");
-            section.className = "category-section";
-            section.innerHTML = `<div class="category-header"><span>${cat.icon}</span> ${cat.name}</div><div class="items-grid"></div>`;
-            const grid = section.querySelector(".items-grid");
-            cat.items.forEach((item, itemIdx) => {
-                const key = getKey(currentSupplier, catIdx, itemIdx);
+        sup.categories.forEach((cat, ci) => {
+            cat.items.forEach((item, ii) => {
+                const key = getKey(supplierId, ci, ii);
                 const qty = orderMap.get(key) || 0;
-                const row = document.createElement("div");
-                row.className = "item-row";
-                
-                const nameSpan = document.createElement("div");
-                nameSpan.className = "item-name";
-                nameSpan.innerHTML = `${escapeHtml(item.name)} <span class="item-unit">${escapeHtml(item.unit)}</span>`;
-                
-                const qtyControl = createQuantityControl(key, qty);
-                
-                row.appendChild(nameSpan);
-                row.appendChild(qtyControl);
-                grid.appendChild(row);
+                if (qty > 0) {
+                    hasAny = true;
+                    totalItems++;
+                    lines.push(`   • ${item.name} — ${qty} ${item.unit}`);
+                }
             });
-            container.appendChild(section);
         });
-        updateAllSummaries();
+        
+        if (!hasAny) return `Нет заказанных позиций для ${sup.name}`;
+        
+        lines.push(`───────────────────────────────────`);
+        lines.push(`✅ Позиций: ${totalItems}`);
+        return lines.join("\n");
     }
 
-    // генерация текста заказа (без даты)
-    function generateFullOrderText() {
-        let lines = [`═══════════════════════════════════`, `🏔️ AUYL PURCHASING MANAGEMENT — ЗАКАЗ`, `═══════════════════════════════════`];
+    // НОВЫЙ ФОРМАТ ОБЩЕГО ЗАКАЗА
+    function generateOverallOrderText() {
+        const tomorrowDate = getTomorrowDate();
+        let lines = [`ОБЩИЙ ЗАКАЗ`, `${tomorrowDate}`, `───────────────────────────────────`];
         let hasAny = false, totalPositions = 0;
         
         for (let [supId, sup] of Object.entries(supplierCatalogs)) {
@@ -606,24 +612,114 @@ Here is the updated HTML document with the extra description text removed and th
                 });
             });
             if (supLines.length > 0) {
-                lines.push(`\n📦 ПОСТАВЩИК: ${sup.name}`);
+                lines.push(`\n📦 ${sup.name}`);
                 lines.push(...supLines);
             }
         }
         
-        if (!hasAny) {
-            return "⏸️ Нет заказанных позиций. Укажите количество (например, 0.5, 1.5, 2)";
-        }
+        if (!hasAny) return "Нет заказанных позиций";
         
         lines.push(`\n───────────────────────────────────`);
-        lines.push(`✅ Всего позиций в заказе: ${totalPositions}`);
+        lines.push(`✅ Всего позиций: ${totalPositions}`);
         return lines.join("\n");
     }
 
-    // живое превью
+    function renderCurrentSupplier() {
+        const sup = supplierCatalogs[currentSupplier];
+        if (!sup) return;
+        container.innerHTML = "";
+        sup.categories.forEach((cat, catIdx) => {
+            const section = document.createElement("div");
+            section.className = "category-section";
+            section.innerHTML = `<div class="category-header"><span>${cat.icon}</span> ${cat.name}</div><div class="items-grid"></div>`;
+            const grid = section.querySelector(".items-grid");
+            cat.items.forEach((item, itemIdx) => {
+                const key = getKey(currentSupplier, catIdx, itemIdx);
+                const qty = orderMap.get(key) || 0;
+                const row = document.createElement("div");
+                row.className = "item-row";
+                
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "item-name";
+                nameDiv.innerHTML = `${escapeHtml(item.name)} <span class="item-unit">${escapeHtml(item.unit)}</span>`;
+                
+                const controlDiv = document.createElement("div");
+                controlDiv.className = "item-control";
+                
+                const minusBtn = document.createElement("button");
+                minusBtn.textContent = "−";
+                minusBtn.className = "control-btn";
+                minusBtn.type = "button";
+                
+                const input = document.createElement("input");
+                input.type = "number";
+                input.step = "0.1";
+                input.value = qty;
+                input.min = "0";
+                input.className = "qty-input";
+                
+                const plusBtn = document.createElement("button");
+                plusBtn.textContent = "+";
+                plusBtn.className = "control-btn";
+                plusBtn.type = "button";
+                
+                function setValue(val) {
+                    let num = parseFloat(val);
+                    if (isNaN(num) || num < 0) num = 0;
+                    num = Math.round(num * 100) / 100;
+                    input.value = num;
+                    orderMap.set(key, num);
+                    updateAllFields();
+                }
+                
+                minusBtn.onclick = () => {
+                    let current = parseFloat(input.value);
+                    if (isNaN(current)) current = 0;
+                    setValue(current - 1);
+                };
+                
+                plusBtn.onclick = () => {
+                    let current = parseFloat(input.value);
+                    if (isNaN(current)) current = 0;
+                    setValue(current + 1);
+                };
+                
+                input.oninput = (e) => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) val = 0;
+                    if (val < 0) val = 0;
+                    val = Math.round(val * 100) / 100;
+                    orderMap.set(key, val);
+                    updateAllFields();
+                    if (input.value != val) input.value = val;
+                };
+                
+                controlDiv.appendChild(minusBtn);
+                controlDiv.appendChild(input);
+                controlDiv.appendChild(plusBtn);
+                
+                row.appendChild(nameDiv);
+                row.appendChild(controlDiv);
+                grid.appendChild(row);
+            });
+            container.appendChild(section);
+        });
+        updateAllFields();
+    }
+
+    function updateCurrentSupplierCopy() {
+        const text = generateSupplierOrderText(currentSupplier);
+        document.getElementById("currentSupplierCopyField").innerText = text;
+    }
+
+    function updateOverallCopy() {
+        const text = generateOverallOrderText();
+        document.getElementById("overallCopyField").innerText = text;
+    }
+
     function updateQuickSummary() {
         let totalItems = 0;
-        let html = `<strong>📦 выбранные товары (все поставщики):</strong><br>`;
+        let html = ``;
         let hasOrders = false;
         
         for (let [supId, sup] of Object.entries(supplierCatalogs)) {
@@ -643,78 +739,83 @@ Here is the updated HTML document with the extra description text removed and th
             }
         }
         
-        if (!hasOrders) {
-            document.getElementById("quickSummary").innerHTML = "✨ нет выбранных товаров — укажите количество (0.5, 1.5, 2...)";
-        } else {
-            document.getElementById("quickSummary").innerHTML = html;
-        }
+        document.getElementById("quickSummary").innerHTML = hasOrders ? html : "Нет выбранных товаров";
         document.getElementById("itemCounterBadge").innerText = `${totalItems} позиций`;
     }
 
-    function updateCopyField() {
-        document.getElementById("copyTextField").innerText = generateFullOrderText();
-    }
-
-    function updateAllSummaries() {
+    function updateAllFields() {
         updateQuickSummary();
-        updateCopyField();
+        updateCurrentSupplierCopy();
+        updateOverallCopy();
     }
 
-    // сброс всех заказов
     function resetAllOrders() {
         for (let key of orderMap.keys()) orderMap.set(key, 0);
         renderCurrentSupplier();
-        updateAllSummaries();
-        showToast("🔄 весь заказ очищен");
+        updateAllFields();
+        showToast("Весь заказ очищен");
     }
 
-    // копирование в буфер
-    async function copyToClipboard() {
-        const text = document.getElementById("copyTextField").innerText;
-        if (!text || text.includes("Нет заказанных позиций")) {
-            showToast("⚠️ нет товаров для копирования");
+    async function copyToClipboard(text, successMsg) {
+        if (!text || text.includes("Нет заказанных")) {
+            showToast("Нет товаров для копирования");
             return;
         }
         try {
             await navigator.clipboard.writeText(text);
-            showToast("✅ заказ скопирован");
-        } catch (err) {
-            const textarea = document.createElement("textarea");
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
+            showToast(successMsg);
+        } catch(err) {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
             document.execCommand("copy");
-            document.body.removeChild(textarea);
-            showToast("📋 скопировано");
+            document.body.removeChild(ta);
+            showToast(successMsg);
         }
     }
 
-    function refreshCopyField() {
-        updateCopyField();
-        showToast("📄 поле копирования обновлено");
+    function copyCurrentSupplier() {
+        const text = document.getElementById("currentSupplierCopyField").innerText;
+        copyToClipboard(text, "Заказ поставщика скопирован");
+    }
+
+    function copyOverall() {
+        const text = document.getElementById("overallCopyField").innerText;
+        copyToClipboard(text, "Общий заказ скопирован");
+    }
+
+    function refreshCurrent() {
+        updateCurrentSupplierCopy();
+        showToast("Поле текущего поставщика обновлено");
+    }
+
+    function refreshOverall() {
+        updateOverallCopy();
+        showToast("Общее поле обновлено");
     }
 
     let toastTimeout = null;
-    function showToast(message, duration = 2000) {
+    function showToast(msg) {
         const existing = document.querySelector(".toast-msg");
         if (existing) existing.remove();
         const toast = document.createElement("div");
         toast.className = "toast-msg";
-        toast.innerText = message;
+        toast.innerText = msg;
         document.body.appendChild(toast);
         if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => toast.remove(), duration);
+        toastTimeout = setTimeout(() => toast.remove(), 2000);
     }
 
-    // обработчики кнопок
-    document.getElementById("resetAllOrdersBtn").addEventListener("click", resetAllOrders);
-    document.getElementById("copyTextBtn").addEventListener("click", copyToClipboard);
-    document.getElementById("refreshCopyBtn").addEventListener("click", refreshCopyField);
+    document.getElementById("resetAllOrdersBtn").onclick = resetAllOrders;
+    document.getElementById("copyCurrentSupplierBtn").onclick = copyCurrentSupplier;
+    document.getElementById("copyOverallBtn").onclick = copyOverall;
+    document.getElementById("refreshCurrentBtn").onclick = refreshCurrent;
+    document.getElementById("refreshOverallBtn").onclick = refreshOverall;
     
-    // запуск
+    document.getElementById("currentSupplierName").textContent = supplierCatalogs[currentSupplier].name;
     renderTabs();
     renderCurrentSupplier();
 </script>
 </body>
 </html>
-```
