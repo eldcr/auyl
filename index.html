@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>✨ cosmic sketchpad | my first github pages site</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f9f3e8 0%, #ffe6d5 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #1e2a2f;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    /* smooth container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(2px);
+      border-radius: 3rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0,0,0,0.05);
+      padding: 2rem 2rem 2.5rem;
+      transition: all 0.2s ease;
+    }
+
+    /* header zone */
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 2px dashed #fbc4ab;
+      padding-bottom: 1.8rem;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c4452c, #e67e4a, #f4b784);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #2d3e3f;
+      color: #f7e9dc;
+      font-size: 0.75rem;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+      backdrop-filter: blur(2px);
+      margin-top: 0.5rem;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #4c5b5e;
+      margin-top: 0.8rem;
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* card grid */
+    .feature-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.8rem;
+      justify-content: center;
+      margin: 3rem 0 2rem;
+    }
+
+    .card {
+      background: #ffffffdd;
+      backdrop-filter: blur(4px);
+      background: white;
+      border-radius: 2rem;
+      padding: 1.5rem 1.2rem;
+      flex: 1 1 260px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #ffdecb;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 22px 30px -12px rgba(0, 0, 0, 0.15);
+      border-color: #f7b787;
+    }
+
+    .card-icon {
+      font-size: 2.6rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #c4452c;
+    }
+
+    .card p {
+      color: #3d4f54;
+      font-size: 0.9rem;
+    }
+
+    /* interactive widget — click counter & mood toggler */
+    .playground {
+      background: #fef3e9;
+      border-radius: 2rem;
+      margin: 2.5rem 0 2rem;
+      padding: 1.6rem 1.8rem;
+      box-shadow: inset 0 1px 4px #ffd9c4, 0 8px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid #ffe0cd;
+    }
+
+    .widget-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 1.2rem;
+      color: #2f494b;
+    }
+
+    .interactive-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .counter-area {
+      background: white;
+      border-radius: 1.8rem;
+      padding: 0.8rem 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 1.2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid #ffe0ce;
+    }
+
+    .counter-btn {
+      background: #ffb485;
+      border: none;
+      font-size: 2rem;
+      width: 48px;
+      height: 48px;
+      border-radius: 60px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .counter-btn:active {
+      transform: scale(0.94);
+      background: #e5672c;
+    }
+
+    .counter-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      min-width: 70px;
+      text-align: center;
+      font-family: monospace;
+      letter-spacing: 2px;
+      color: #b13d20;
+    }
+
+    .mood-section {
+      background: #ffe8dc;
+      border-radius: 2rem;
+      padding: 0.8rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .mood-label {
+      font-weight: 600;
+    }
+
+    .mood-btn {
+      background: transparent;
+      border: 1px solid #c4452c;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.1s;
+      color: #b5492d;
+    }
+
+    .mood-btn.active {
+      background: #c4452c;
+      color: white;
+      border-color: #c4452c;
+      box-shadow: 0 2px 6px rgba(196,69,44,0.3);
+    }
+
+    .mood-feedback {
+      font-size: 1.2rem;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* project notes + deployment tips */
+    .github-note {
+      background: #2b2e2f;
+      border-radius: 1.6rem;
+      padding: 1.2rem 1.6rem;
+      margin: 2rem 0 1.2rem;
+      color: #f3ded1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .code-snip {
+      background: #1d2628;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+      color: #ffcfaa;
+    }
+
+    .btn-gh {
+      background: #f7b787;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      color: #2d2b26;
+      cursor: pointer;
+      transition: 0.1s;
+      font-size: 0.85rem;
+    }
+
+    .btn-gh:hover {
+      background: #ffa25b;
+      transform: scale(0.97);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #8f7a6b;
+      border-top: 1px solid #ffd8c3;
+      padding-top: 1.5rem;
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 1rem;
+      }
+      .container {
+        padding: 1.3rem;
+      }
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+      .counter-value {
+        font-size: 1.8rem;
+        min-width: 50px;
+      }
+      .interactive-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>🌿 stardust lab</h1>
+    <div class="badge">✨ live on GitHub Pages ✨</div>
+    <p>minimal • playful • ready to deploy — your first web playground</p>
+  </div>
+
+  <div class="feature-grid">
+    <div class="card">
+      <div class="card-icon">📁</div>
+      <h3>push to GitHub</h3>
+      <p>Create a repo, upload this file → <strong>index.html</strong>, enable Pages.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚀</div>
+      <h3>one-click live</h3>
+      <p>GitHub Pages serves your site at <strong>username.github.io/repo</strong></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>fully interactive</h3>
+      <p>HTML/CSS/JS, no build step — edit and refresh to see changes instantly.</p>
+    </div>
+  </div>
+
+  <!-- interactive widget : counter + mood toggler -->
+  <div class="playground">
+    <div class="widget-title">
+      <span>🧸</span> <span>interactive corner</span> <span>⚡</span>
+    </div>
+    <div class="interactive-row">
+      <div class="counter-area">
+        <button class="counter-btn" id="decrementBtn" aria-label="decrease">-</button>
+        <span class="counter-value" id="counterDisplay">0</span>
+        <button class="counter-btn" id="incrementBtn" aria-label="increase">+</button>
+      </div>
+      <div class="mood-section">
+        <span class="mood-label">🌙 mood mode :</span>
+        <button data-mood="cozy" class="mood-btn">🍂 cozy</button>
+        <button data-mood="cosmic" class="mood-btn active">🌌 cosmic</button>
+        <button data-mood="sunset" class="mood-btn">🌅 sunset</button>
+        <span class="mood-feedback" id="moodFeedback">cosmic vibe active</span>
+      </div>
+    </div>
+    <p style="font-size: 0.8rem; margin-top: 1rem; opacity: 0.7;">✨ click the buttons — everything updates live, no server needed ✨</p>
+  </div>
+
+  <!-- github deployment helper + interactive copy instruction -->
+  <div class="github-note">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-weight: 700;">📤 deploy to GitHub Pages in 3 steps</span>
+      <div class="code-snip" id="repoHint">1. new repo → 2. upload index.html → 3. settings > Pages (branch main)</div>
+    </div>
+    <button class="btn-gh" id="copyTipBtn">📋 copy instruction</button>
+  </div>
+
+  <footer>
+    🌟 made with ⚡ and vanilla web tools — ready to be published. <br>
+    just drag this file into your GitHub repo, enable Pages, and share your URL!
+  </footer>
+</div>
+
+<script>
+  (function(){
+    // --- COUNTER LOGIC ---
+    let clickCount = 0;
+    const counterDisplay = document.getElementById('counterDisplay');
+    const incBtn = document.getElementById('incrementBtn');
+    const decBtn = document.getElementById('decrementBtn');
+
+    function updateCounterUI() {
+      if (counterDisplay) counterDisplay.innerText = clickCount;
+      // extra fun: if we want to store in localstorage? optional but nice
+      localStorage.setItem('interactiveCounter', clickCount);
+    }
+
+    function incrementCounter() {
+      clickCount++;
+      updateCounterUI();
+    }
+
+    function decrementCounter() {
+      clickCount--;
+      updateCounterUI();
+    }
+
+    // load stored counter from localStorage if exists (for fun persistence)
+    const storedCount = localStorage.getItem('interactiveCounter');
+    if (storedCount !== null && !isNaN(parseInt(storedCount))) {
+      clickCount = parseInt(storedCount);
+      updateCounterUI();
+    } else {
+      updateCounterUI();
+    }
+
+    if (incBtn) incBtn.addEventListener('click', incrementCounter);
+    if (decBtn) decBtn.addEventListener('click', decrementCounter);
+
+    // --- MOOD MODE (theme / background & visual effects) ---
+    const moodButtons = document.querySelectorAll('.mood-btn');
+    const moodFeedbackSpan = document.getElementById('moodFeedback');
+    const bodyElement = document.body;
+    const containerDiv = document.querySelector('.container');
+
+    // define mood styles (we change body gradient and container accent)
+    function setMood(moodId) {
+      // remove active class from all
+      moodButtons.forEach(btn => btn.classList.remove('active'));
+      // add active to clicked button
+      const activeBtn = Array.from(moodButtons).find(btn => btn.getAttribute('data-mood') === moodId);
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      // update feedback text and dynamic style
+      let moodText = '';
+      let bodyGradient = '';
+      let containerBg = '';
+      let cardBorder = '';
+      let buttonHover = '';
+
+      switch(moodId) {
+        case 'cozy':
+          moodText = '🧸 cozy vibes · soft wool & tea';
+          bodyGradient = 'linear-gradient(145deg, #fbe9d2 0%, #f8ddc4 100%)';
+          containerBg = 'rgba(252, 241, 227, 0.9)';
+          cardBorder = '#f3cd9b';
+          break;
+        case 'cosmic':
+          moodText = '🌌 cosmic journey · deep nebula dreams';
+          bodyGradient = 'linear-gradient(135deg, #101f2c 0%, #2c3e3f 50%, #e2c7a1 100%)';
+          containerBg = 'rgba(255, 248, 235, 0.88)';
+          cardBorder = '#ffcf9a';
+          break;
+        case 'sunset':
+          moodText = '🌅 golden hour · warm horizon glow';
+          bodyGradient = 'linear-gradient(120deg, #ffb347 0%, #ff8c42 40%, #ffd6a5 100%)';
+          containerBg = 'rgba(255, 241, 217, 0.92)';
+          cardBorder = '#fdba6a';
+          break;
+        default: 
+          moodText = 'cosmic vibe active';
+          bodyGradient = 'linear-gradient(145deg, #f9f3e8 0%, #ffe6d5 100%)';
+          containerBg = 'rgba(255, 255, 255, 0.75)';
+      }
+      
+      // apply to body
+      bodyElement.style.background = bodyGradient;
+      if (containerDiv) {
+        containerDiv.style.background = containerBg;
+        // optional little border accent
+        containerDiv.style.transition = 'background 0.3s ease';
+      }
+      if (moodFeedbackSpan) moodFeedbackSpan.innerText = moodText;
+      
+      // persist mood in localStorage so that refresh keeps the last selected mood
+      localStorage.setItem('userMood', moodId);
+      
+      // also tweak card border colors for dynamic flair
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        if (moodId === 'cozy') card.style.borderColor = '#efc8a2';
+        else if (moodId === 'cosmic') card.style.borderColor = '#c5aa7a';
+        else if (moodId === 'sunset') card.style.borderColor = '#fcb375';
+        else card.style.borderColor = '#ffdecb';
+      });
+    }
+    
+    // attach mood event listeners
+    moodButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const mood = btn.getAttribute('data-mood');
+        if (mood) setMood(mood);
+      });
+    });
+    
+    // retrieve saved mood from localStorage
+    const savedMood = localStorage.getItem('userMood');
+    if (savedMood && (savedMood === 'cozy' || savedMood === 'cosmic' || savedMood === 'sunset')) {
+      setMood(savedMood);
+    } else {
+      // default to cosmic (already set by initial active class)
+      setMood('cosmic');
+    }
+    
+    // additional local persistence: counter already saved, also we could add a reset? but fine
+    
+    // --- GITHUB HELPER: copy instruction + dynamic username? optional simulation but showing how to deploy
+    const copyBtn = document.getElementById('copyTipBtn');
+    const repoHintDiv = document.getElementById('repoHint');
+    
+    async function copyDeployText() {
+      const deployMessage = `📌 GitHub Pages deployment:
+1. Create a new repository on GitHub (public).
+2. Upload this "index.html" file (or drag & drop).
+3. Go to repository Settings → Pages → under "Branch" select "main" (or master) and / (root) folder.
+4. Click Save — your site will be live at https://<your-username>.github.io/<repository-name>/ ✨`;
+      
+      try {
+        await navigator.clipboard.writeText(deployMessage);
+        // show feedback on button temporarily
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = '✓ copied!';
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+        }, 1800);
+      } catch (err) {
+        alert('manual copy: ' + deployMessage);
+      }
+    }
+    
+    if (copyBtn) copyBtn.addEventListener('click', copyDeployText);
+    
+    // also an easter egg: display current time or last deploy msg — just for fun
+    const footerElement = document.querySelector('footer');
+    if (footerElement) {
+      const now = new Date();
+      const formatted = `${now.toLocaleDateString()} · local magic`;
+      const extraSpan = document.createElement('span');
+      extraSpan.style.display = 'block';
+      extraSpan.style.marginTop = '0.5rem';
+      extraSpan.style.fontSize = '0.7rem';
+      extraSpan.style.opacity = '0.6';
+      extraSpan.innerText = `✨ ready to publish · ${formatted}`;
+      footerElement.appendChild(extraSpan);
+    }
+    
+    // optional: dynamic repo rename suggestion - not needed but nice
+    const updateRepoHint = () => {
+      // just show generic, but we can also fake it
+      if (repoHintDiv) {
+        // check if we are on github pages? no issue, but good.
+        repoHintDiv.innerText = '📂 repo: create repo → upload index.html → enable Pages (branch: main)';
+      }
+    };
+    updateRepoHint();
+    
+    // simple key command fun (optional: double click reset? but not needed, but adds charm)
+    // let's add a secret console greeting
+    console.log("%c✨ GitHub pages project ready! ✨", "color: #c4452c; font-size: 16px; font-weight: bold;");
+    console.log("To publish: push this HTML to a repo, go to Settings > Pages, choose branch main, and enjoy!");
+    
+    // add a small effect: when counter reaches multiples of 10, show a little toast style message (optional)
+    const originalUpdate = updateCounterUI;
+    const toastMessage = (msg) => {
+      const toastDiv = document.createElement('div');
+      toastDiv.innerText = msg;
+      toastDiv.style.position = 'fixed';
+      toastDiv.style.bottom = '20px';
+      toastDiv.style.left = '50%';
+      toastDiv.style.transform = 'translateX(-50%)';
+      toastDiv.style.backgroundColor = '#2f3e3b';
+      toastDiv.style.color = '#ffe2cf';
+      toastDiv.style.padding = '0.5rem 1.2rem';
+      toastDiv.style.borderRadius = '60px';
+      toastDiv.style.fontSize = '0.8rem';
+      toastDiv.style.fontWeight = '500';
+      toastDiv.style.zIndex = '999';
+      toastDiv.style.backdropFilter = 'blur(8px)';
+      toastDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+      document.body.appendChild(toastDiv);
+      setTimeout(() => {
+        toastDiv.style.opacity = '0';
+        setTimeout(() => toastDiv.remove(), 400);
+      }, 1500);
+    };
+    
+    // override increment and decrement to add celebration at 5, 10, etc
+    const origInc = incrementCounter;
+    const origDec = decrementCounter;
+    window.incrementCounter = function() {
+      const oldVal = clickCount;
+      origInc();
+      if (clickCount !== 0 && clickCount % 10 === 0 && clickCount !== oldVal) {
+        toastMessage(`🎉 ${clickCount} clicks! stellar! 🎉`);
+      } else if (clickCount === 5 || clickCount === 15) {
+        toastMessage(`⚡ keep going — you're on fire ⚡`);
+      }
+    };
+    window.decrementCounter = function() {
+      const oldVal = clickCount;
+      origDec();
+      if (clickCount !== 0 && clickCount % 10 === 0 && clickCount !== oldVal) {
+        toastMessage(`✨ ${clickCount} clicks, cosmic balance ✨`);
+      } else if (clickCount === -5) {
+        toastMessage(`🌀 exploring negatives, brave soul 🌀`);
+      }
+    };
+    // replace event listeners with wrapped versions
+    if (incBtn) {
+      const newInc = incBtn.cloneNode(true);
+      incBtn.parentNode.replaceChild(newInc, incBtn);
+      newInc.addEventListener('click', () => window.incrementCounter());
+      document.getElementById('incrementBtn') && (document.getElementById('incrementBtn').onclick = null);
+      // re-assign IDs references
+      window.decrementBtnReassign = () => {};
+      if (decBtn) {
+        const newDec = decBtn.cloneNode(true);
+        decBtn.parentNode.replaceChild(newDec, decBtn);
+        newDec.addEventListener('click', () => window.decrementCounter());
+      }
+    }
+    // refresh references
+    const finalInc = document.getElementById('incrementBtn');
+    const finalDec = document.getElementById('decrementBtn');
+    if (finalInc) finalInc.addEventListener('click', () => window.incrementCounter());
+    if (finalDec) finalDec.addEventListener('click', () => window.decrementCounter());
+    
+    // make sure UI shows correct initial values after reattaching listeners
+    updateCounterUI();
+    
+    // attach nice ripple or extra style? completely fine
+  })();
+</script>
+</body>
+</html>
