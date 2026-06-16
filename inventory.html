@@ -28,12 +28,19 @@
             gap: 0.5rem 1rem;
             padding: 0.6rem 1rem;
             border-bottom: 1px solid #f5f5f5;
-            transition: background-color 0.2s ease;
+            transition: all 0.25s ease;
             border-radius: 4px;
+            /* DEFAULT: pale red */
+            background: #fff5f5;
+            border-left: 3px solid #f0d0d0;
         }
         
         .item-row:last-child {
             border-bottom: none;
+        }
+        
+        .item-row:hover {
+            background: #fff0f0;
         }
         
         /* ============================================================
@@ -49,15 +56,14 @@
             transition: background 0.2s ease;
         }
         
-        /* 2. When a number has been entered (expression field has value) - pale red */
-        .item-row.has-value {
-            background: #fff5f5;
-            border-left: 3px solid #e8a0a0;
-            border-radius: 4px;
+        /* 2. AFTER = button is pressed - turn green */
+        .item-row.calculated {
+            background: #f0faf0;
+            border-left: 3px solid #81c784;
         }
         
-        .item-row.has-value:hover {
-            background: #fff0f0;
+        .item-row.calculated:hover {
+            background: #e8f5e9;
         }
         
         /* 3. When expression field is focused */
@@ -67,7 +73,7 @@
             box-shadow: 0 0 0 3px rgba(184, 139, 102, 0.15);
         }
         
-        /* 4. When result has a value (not 0 or err) */
+        /* 4. Result box states */
         .weight-result-box.has-result {
             background: #e8f5e9;
             border-color: #81c784;
@@ -93,7 +99,7 @@
         }
         
         .item-name .item-unit-badge {
-            background: #f0f0f0;
+            background: rgba(0,0,0,0.06);
             padding: 0.1rem 0.5rem;
             border-radius: 12px;
             font-size: 0.6rem;
@@ -134,11 +140,6 @@
         .weight-expr-input::placeholder {
             color: #bbb;
             font-size: 0.75rem;
-        }
-        
-        .weight-expr-input.has-value {
-            border-color: #e8a0a0;
-            background: #fff8f8;
         }
         
         .weight-calc-btn {
@@ -353,7 +354,7 @@
         const container = document.getElementById('inventoryContainer');
         const copyField = document.getElementById('copyField');
         
-        // orderMap: rowId -> { name, expr, result }
+        // orderMap: rowId -> { name, expr, result, calculated }
         let orderMap = new Map();
         
         // ============================================================
@@ -378,13 +379,14 @@
         }
         
         // ============================================================
-        // CREATE ROW — with highlight states
+        // CREATE ROW — pale red default, green after calculation
         // ============================================================
         function createRow(productName = '', expression = '', resultValue = '', unit = 'Кг') {
             const rowId = ++rowCounter;
             const row = document.createElement('div');
             row.className = 'item-row';
             row.dataset.rowId = rowId;
+            // Default: pale red (applied via CSS)
             
             // Product name with click handler for selection highlight
             const nameDiv = document.createElement('div');
@@ -393,11 +395,9 @@
             
             // Click on product name to highlight it (slight grey)
             nameDiv.addEventListener('click', function(e) {
-                // Remove selected class from all product names
                 document.querySelectorAll('.item-name').forEach(el => {
                     el.classList.remove('selected');
                 });
-                // Add selected class to this one
                 this.classList.add('selected');
             });
             
@@ -445,23 +445,19 @@
             // ============================================================
             // UPDATE HIGHLIGHT STATES
             // ============================================================
+            let isCalculated = false;
+            
             function updateRowHighlights() {
-                const expr = exprInput.value.trim();
                 const result = resultSpan.textContent;
-                const hasValue = expr !== '' && result !== '0' && result !== 'err';
+                const hasValidResult = result !== '0' && result !== '' && result !== 'err';
                 
-                // Row highlight - pale red if has value
-                if (hasValue) {
-                    row.classList.add('has-value');
-                } else {
+                // If calculated and has valid result -> green
+                if (isCalculated && hasValidResult) {
+                    row.classList.add('calculated');
                     row.classList.remove('has-value');
-                }
-                
-                // Expression input highlight - slight red border if has value
-                if (expr !== '') {
-                    exprInput.classList.add('has-value');
                 } else {
-                    exprInput.classList.remove('has-value');
+                    row.classList.remove('calculated');
+                    // Keep pale red (default)
                 }
                 
                 // Result box highlight
@@ -472,6 +468,7 @@
                 const result = resultSpan.textContent;
                 if (result === 'err') {
                     resultSpan.classList.add('has-result', 'error');
+                    resultSpan.classList.remove('has-result');
                 } else if (result !== '0' && result !== '') {
                     resultSpan.classList.add('has-result');
                     resultSpan.classList.remove('error');
@@ -485,10 +482,12 @@
                 const expr = exprInput.value.trim();
                 if (expr === '') {
                     resultSpan.textContent = '0';
+                    isCalculated = false;
                     orderMap.set(rowId, { 
                         name: productName, 
                         expr: expr, 
                         result: '0',
+                        calculated: false,
                         unit: unit
                     });
                     updateRowHighlights();
@@ -498,14 +497,17 @@
                 const result = evaluateExpression(expr);
                 if (isNaN(result) || !isFinite(result)) {
                     resultSpan.textContent = 'err';
+                    isCalculated = true;
                 } else {
                     const formatted = result.toString().replace('.', ',');
                     resultSpan.textContent = formatted;
+                    isCalculated = true;
                 }
                 orderMap.set(rowId, { 
                     name: productName, 
                     expr: exprInput.value.trim(), 
                     result: resultSpan.textContent,
+                    calculated: isCalculated,
                     unit: unit
                 });
                 updateRowHighlights();
@@ -519,12 +521,23 @@
                 }
             });
             
+            // When user types in expression, keep pale red (don't auto-calculate)
             exprInput.addEventListener('input', function() {
                 const expr = exprInput.value.trim();
+                // If user clears the expression, reset calculated state
+                if (expr === '') {
+                    isCalculated = false;
+                    resultSpan.textContent = '0';
+                    row.classList.remove('calculated');
+                } else {
+                    // Keep pale red until = is pressed
+                    row.classList.remove('calculated');
+                }
                 orderMap.set(rowId, { 
                     name: productName, 
                     expr: expr, 
                     result: resultSpan.textContent,
+                    calculated: isCalculated,
                     unit: unit
                 });
                 updateRowHighlights();
@@ -542,6 +555,7 @@
                 name: productName, 
                 expr: exprInput.value.trim(), 
                 result: resultSpan.textContent,
+                calculated: false,
                 unit: unit
             });
             
@@ -619,7 +633,14 @@
                 const result = resultSpan ? resultSpan.textContent : '0';
                 
                 if (rowId) {
-                    orderMap.set(rowId, { name, expr, result, unit: 'Кг' });
+                    const existing = orderMap.get(rowId) || {};
+                    orderMap.set(rowId, { 
+                        name, 
+                        expr, 
+                        result, 
+                        calculated: existing.calculated || false,
+                        unit: 'Кг' 
+                    });
                 }
                 
                 const numericResult = parseFloat(result.replace(',', '.'));
@@ -719,9 +740,8 @@
                 const resultSpan = row.querySelector('.weight-result-box');
                 if (exprInput) exprInput.value = '';
                 if (resultSpan) resultSpan.textContent = '0';
-                // Remove highlights
-                row.classList.remove('has-value');
-                if (exprInput) exprInput.classList.remove('has-value');
+                // Remove green highlight, return to pale red
+                row.classList.remove('calculated');
                 if (resultSpan) {
                     resultSpan.classList.remove('has-result', 'error');
                 }
