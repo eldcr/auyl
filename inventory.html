@@ -13,6 +13,183 @@
     
     <!-- SheetJS for Excel export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        /* ============================================================
+           Additional styles for weight calculation field
+           ============================================================ */
+        
+        /* Row layout with weight calculator */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .item-row:hover {
+            background: #fafaf8;
+        }
+        
+        .item-name {
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: #1a1a1a;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .item-name .item-unit-badge {
+            background: #f0f0f0;
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #888;
+            margin-left: 0.4rem;
+        }
+        
+        /* Weight calculator group - clean & minimal */
+        .weight-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            touch-action: manipulation;
+        }
+        
+        .weight-expr-input {
+            width: 100px;
+            padding: 0.35rem 0.6rem;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            background: white;
+            text-align: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.15s;
+        }
+        
+        .weight-expr-input:focus {
+            outline: none;
+            border-color: #b88b66;
+            box-shadow: 0 0 0 3px rgba(184, 139, 102, 0.15);
+        }
+        
+        .weight-expr-input::placeholder {
+            color: #bbb;
+            font-size: 0.75rem;
+        }
+        
+        .weight-calc-btn {
+            background: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.35rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: white;
+            transition: 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            min-width: 44px;
+            justify-content: center;
+        }
+        
+        .weight-calc-btn:hover {
+            background: #2a2a2a;
+        }
+        
+        .weight-calc-btn:active {
+            transform: scale(0.96);
+        }
+        
+        .weight-result-box {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: monospace;
+            min-width: 50px;
+            text-align: center;
+            color: #1a1a1a;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 680px) {
+            .item-row {
+                padding: 0.5rem 0.6rem;
+                gap: 0.4rem;
+            }
+            .item-name {
+                font-size: 0.8rem;
+                min-width: 100px;
+                flex: 1 1 100%;
+            }
+            .weight-group {
+                flex: 1 1 100%;
+                justify-content: flex-start;
+            }
+            .weight-expr-input {
+                width: 80px;
+                font-size: 0.8rem;
+                padding: 0.3rem 0.4rem;
+            }
+            .weight-calc-btn {
+                padding: 0.3rem 0.8rem;
+                font-size: 0.75rem;
+                min-width: 38px;
+            }
+            .weight-result-box {
+                font-size: 0.8rem;
+                min-width: 40px;
+                padding: 0.3rem 0.5rem;
+                min-height: 32px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .weight-group {
+                gap: 0.3rem;
+            }
+            .weight-expr-input {
+                width: 65px;
+                font-size: 0.75rem;
+                padding: 0.25rem 0.3rem;
+            }
+            .weight-calc-btn {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.6rem;
+                min-width: 34px;
+            }
+            .weight-result-box {
+                font-size: 0.75rem;
+                min-width: 35px;
+                padding: 0.25rem 0.4rem;
+                min-height: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="main-container">
@@ -22,7 +199,7 @@
         <h1><i class="fas fa-warehouse"></i> Ресторанный склад</h1>
         <div class="subhead">
             <i class="fas fa-calculator"></i> 
-            Введите выражение (например, <strong>0,100+0,200</strong>) · нажмите <i class="fas fa-equals"></i>
+            Введите выражение (например, <strong>1+1</strong> или <strong>0,5+0,75</strong>) · нажмите <i class="fas fa-equals"></i>
         </div>
     </div>
     
@@ -124,7 +301,7 @@
         const container = document.getElementById('inventoryContainer');
         const copyField = document.getElementById('copyField');
         
-        // orderMap: rowId -> { name, qty, expr, result }
+        // orderMap: rowId -> { name, expr, result }
         let orderMap = new Map();
         
         // ============================================================
@@ -132,7 +309,9 @@
         // ============================================================
         function evaluateExpression(expr) {
             if (!expr || expr.trim() === '') return NaN;
+            // Replace comma with dot for decimal
             const sanitized = expr.replace(/,/g, '.');
+            // Allow only digits, operators, parentheses, and whitespace
             if (!/^[\d+\-*/().\s]+$/.test(sanitized)) return NaN;
             try {
                 const result = new Function(`return (${sanitized})`)();
@@ -149,7 +328,7 @@
         }
         
         // ============================================================
-        // CREATE ROW
+        // CREATE ROW — clean: name, expression, =, result
         // ============================================================
         function createRow(productName = '', expression = '', resultValue = '', unit = 'Кг') {
             const rowId = ++rowCounter;
@@ -162,40 +341,27 @@
             nameDiv.className = 'item-name';
             nameDiv.innerHTML = `${escapeHtml(productName)} <span class="item-unit-badge">${escapeHtml(unit)}</span>`;
             
-            // Controls
-            const controlDiv = document.createElement('div');
-            controlDiv.className = 'item-control';
-            
-            // Minus button
-            const minusBtn = document.createElement('button');
-            minusBtn.className = 'control-btn';
-            minusBtn.textContent = '−';
-            minusBtn.type = 'button';
-            
-            // Qty input
-            const qtyInput = document.createElement('input');
-            qtyInput.type = 'number';
-            qtyInput.step = '0.01';
-            qtyInput.value = '0';
-            qtyInput.min = '0';
-            qtyInput.className = 'qty-input';
+            // Weight calculator group
+            const weightGroup = document.createElement('div');
+            weightGroup.className = 'weight-group';
             
             // Expression input
             const exprInput = document.createElement('input');
             exprInput.type = 'text';
-            exprInput.placeholder = '0,100+...';
+            exprInput.placeholder = '1+1';
             exprInput.value = expression;
-            exprInput.className = 'expr-input';
+            exprInput.className = 'weight-expr-input';
             
-            // Calc button
+            // Calculate button (=)
             const calcBtn = document.createElement('button');
-            calcBtn.className = 'calc-btn';
+            calcBtn.className = 'weight-calc-btn';
             calcBtn.innerHTML = '<i class="fas fa-equals"></i>';
             calcBtn.type = 'button';
+            calcBtn.setAttribute('aria-label', 'Calculate');
             
             // Result display
             const resultSpan = document.createElement('span');
-            resultSpan.className = 'result-box';
+            resultSpan.className = 'weight-result-box';
             let displayVal = resultValue;
             if (displayVal === '' && expression.trim() !== '') {
                 const computed = evaluateExpression(expression);
@@ -205,96 +371,25 @@
             }
             resultSpan.textContent = displayVal;
             
-            // Plus button
-            const plusBtn = document.createElement('button');
-            plusBtn.className = 'control-btn';
-            plusBtn.textContent = '+';
-            plusBtn.type = 'button';
-            
-            // Delete button
-            const deleteBtn = document.createElement('button');
-            deleteBtn.type = 'button';
-            deleteBtn.className = 'control-btn';
-            deleteBtn.innerHTML = '<i class="fas fa-times" style="font-size:0.7rem;"></i>';
-            deleteBtn.style.width = '22px';
-            deleteBtn.style.height = '22px';
-            deleteBtn.style.fontSize = '0.7rem';
-            deleteBtn.style.opacity = '0.4';
-            deleteBtn.addEventListener('click', function() {
-                if (container.querySelectorAll('.item-row').length <= 1) {
-                    qtyInput.value = '0';
-                    exprInput.value = '';
-                    resultSpan.textContent = '0';
-                    orderMap.delete(rowId);
-                    updateAll();
-                    return;
-                }
-                row.remove();
-                orderMap.delete(rowId);
-                updateAll();
-            });
-            
             // Assemble
-            controlDiv.appendChild(minusBtn);
-            controlDiv.appendChild(qtyInput);
-            controlDiv.appendChild(exprInput);
-            controlDiv.appendChild(calcBtn);
-            controlDiv.appendChild(resultSpan);
-            controlDiv.appendChild(plusBtn);
-            controlDiv.appendChild(deleteBtn);
+            weightGroup.appendChild(exprInput);
+            weightGroup.appendChild(calcBtn);
+            weightGroup.appendChild(resultSpan);
             
             row.appendChild(nameDiv);
-            row.appendChild(controlDiv);
-            
-            // ----- Functions -----
-            function setValue(val) {
-                let num = parseFloat(val);
-                if (isNaN(num) || num < 0) num = 0;
-                num = Math.round(num * 100) / 100;
-                qtyInput.value = num;
-                orderMap.set(rowId, { 
-                    name: productName, 
-                    qty: num, 
-                    expr: exprInput.value.trim(), 
-                    result: resultSpan.textContent,
-                    unit: unit
-                });
-                updateAll();
-            }
+            row.appendChild(weightGroup);
             
             // ----- Events -----
-            minusBtn.addEventListener('click', function() {
-                let current = parseFloat(qtyInput.value);
-                if (isNaN(current)) current = 0;
-                setValue(current - 1);
-            });
-            
-            plusBtn.addEventListener('click', function() {
-                let current = parseFloat(qtyInput.value);
-                if (isNaN(current)) current = 0;
-                setValue(current + 1);
-            });
-            
-            qtyInput.addEventListener('input', function(e) {
-                let val = parseFloat(e.target.value);
-                if (isNaN(val)) val = 0;
-                if (val < 0) val = 0;
-                val = Math.round(val * 100) / 100;
-                orderMap.set(rowId, { 
-                    name: productName, 
-                    qty: val, 
-                    expr: exprInput.value.trim(), 
-                    result: resultSpan.textContent,
-                    unit: unit
-                });
-                updateAll();
-                if (qtyInput.value != val) qtyInput.value = val;
-            });
-            
             calcBtn.addEventListener('click', function() {
                 const expr = exprInput.value.trim();
                 if (expr === '') {
                     resultSpan.textContent = '0';
+                    orderMap.set(rowId, { 
+                        name: productName, 
+                        expr: expr, 
+                        result: '0',
+                        unit: unit
+                    });
                     updateAll();
                     return;
                 }
@@ -307,7 +402,6 @@
                 }
                 orderMap.set(rowId, { 
                     name: productName, 
-                    qty: parseFloat(qtyInput.value) || 0, 
                     expr: exprInput.value.trim(), 
                     result: resultSpan.textContent,
                     unit: unit
@@ -315,10 +409,16 @@
                 updateAll();
             });
             
+            // Update on Enter key
+            exprInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    calcBtn.click();
+                }
+            });
+            
             exprInput.addEventListener('input', function() {
                 orderMap.set(rowId, { 
                     name: productName, 
-                    qty: parseFloat(qtyInput.value) || 0, 
                     expr: exprInput.value.trim(), 
                     result: resultSpan.textContent,
                     unit: unit
@@ -329,7 +429,6 @@
             // Store initial
             orderMap.set(rowId, { 
                 name: productName, 
-                qty: parseFloat(qtyInput.value) || 0, 
                 expr: exprInput.value.trim(), 
                 result: resultSpan.textContent,
                 unit: unit
@@ -391,7 +490,6 @@
         // UPDATE ALL FIELDS
         // ============================================================
         function updateAll() {
-            // Update orderMap from DOM
             const rows = container.querySelectorAll('.item-row');
             let allLines = [];
             let totalItems = 0;
@@ -399,23 +497,23 @@
             rows.forEach(row => {
                 const rowId = parseInt(row.dataset.rowId);
                 const nameDiv = row.querySelector('.item-name');
-                const qtyInput = row.querySelector('.qty-input');
-                const exprInput = row.querySelector('.expr-input');
-                const resultSpan = row.querySelector('.result-box');
+                const exprInput = row.querySelector('.weight-expr-input');
+                const resultSpan = row.querySelector('.weight-result-box');
                 
                 const name = nameDiv ? nameDiv.textContent.replace(/\s*Кг$/, '').trim() : 'unnamed';
-                const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
                 const expr = exprInput ? exprInput.value.trim() : '';
                 const result = resultSpan ? resultSpan.textContent : '0';
                 
                 if (rowId) {
-                    orderMap.set(rowId, { name, qty, expr, result, unit: 'Кг' });
+                    orderMap.set(rowId, { name, expr, result, unit: 'Кг' });
                 }
                 
-                if (qty > 0 || (expr && result !== '0' && result !== 'err')) {
+                // Show only items with result > 0 or expression
+                const numericResult = parseFloat(result.replace(',', '.'));
+                if (expr || (numericResult > 0 && !isNaN(numericResult))) {
                     totalItems++;
                     const displayResult = (result && result !== 'err') ? result : '0';
-                    allLines.push(`${name}: ${qty} (${displayResult})`);
+                    allLines.push(`${name}: ${displayResult} кг`);
                 }
             });
             
@@ -438,22 +536,20 @@
                 return;
             }
             
-            const data = [['Продукт', 'Количество', 'Выражение', 'Результат']];
+            const data = [['Продукт', 'Выражение', 'Результат (кг)']];
             let hasData = false;
             
             rows.forEach(row => {
                 const nameDiv = row.querySelector('.item-name');
-                const qtyInput = row.querySelector('.qty-input');
-                const exprInput = row.querySelector('.expr-input');
-                const resultSpan = row.querySelector('.result-box');
+                const exprInput = row.querySelector('.weight-expr-input');
+                const resultSpan = row.querySelector('.weight-result-box');
                 
                 const name = nameDiv ? nameDiv.textContent.replace(/\s*Кг$/, '').trim() : 'unnamed';
-                const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
                 const expr = exprInput ? exprInput.value.trim() : '';
                 const result = resultSpan ? resultSpan.textContent : '0';
                 
-                data.push([name, qty, expr, result]);
-                if (name !== 'unnamed' || qty > 0 || expr) hasData = true;
+                data.push([name, expr, result]);
+                if (name !== 'unnamed' || expr || result !== '0') hasData = true;
             });
             
             if (!hasData) {
@@ -507,10 +603,8 @@
         function resetAll() {
             const rows = container.querySelectorAll('.item-row');
             rows.forEach(row => {
-                const qtyInput = row.querySelector('.qty-input');
-                const exprInput = row.querySelector('.expr-input');
-                const resultSpan = row.querySelector('.result-box');
-                if (qtyInput) qtyInput.value = '0';
+                const exprInput = row.querySelector('.weight-expr-input');
+                const resultSpan = row.querySelector('.weight-result-box');
                 if (exprInput) exprInput.value = '';
                 if (resultSpan) resultSpan.textContent = '0';
             });
@@ -526,8 +620,8 @@
             const row = createRow('Новый товар', '', '0', 'Кг');
             container.appendChild(row);
             updateAll();
-            const qtyInput = row.querySelector('.qty-input');
-            if (qtyInput) setTimeout(() => qtyInput.focus(), 50);
+            const exprInput = row.querySelector('.weight-expr-input');
+            if (exprInput) setTimeout(() => exprInput.focus(), 50);
             showToast('✅ Товар добавлен');
         }
         
