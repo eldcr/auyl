@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Auyl · Управление</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* ============================================================
+           Landing page styles
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        
+        .landing-container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        
+        .landing-logo {
+            font-size: 3.5rem;
+            color: #b88b66;
+            margin-bottom: 0.5rem;
+        }
+        
+        .landing-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .landing-subtitle {
+            color: #888;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 1.5rem;
+        }
+        
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .app-card {
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            border: 1px solid #eaeaea;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #1a1a1a;
+            display: block;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-color: #d0d0d0;
+            background: white;
+        }
+        
+        .app-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .app-card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .app-card-desc {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+        
+        .app-card-badge {
+            display: inline-block;
+            background: #1a1a1a;
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 0.15rem 0.6rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .app-card-badge.green {
+            background: #25D366;
+        }
+        
+        .app-card-badge.orange {
+            background: #b88b66;
+        }
+        
+        /* ============================================================
+           Responsive
+           ============================================================ */
+        @media (max-width: 600px) {
+            .landing-container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .app-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .landing-title {
+                font-size: 1.4rem;
+            }
+            
+            .app-card {
+                padding: 1.2rem 0.8rem;
+            }
+            
+            .app-card-icon {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            body {
+                padding: 0.75rem;
+            }
+            
+            .landing-container {
+                padding: 1.25rem 0.75rem;
+                border-radius: 16px;
+            }
+            
+            .landing-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <!-- Logo -->
+        <div class="landing-logo">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        
+        <h1 class="landing-title">Auyl · Управление</h1>
+        <p class="landing-subtitle">
+            <i class="fas fa-cog" style="color:#b88b66;"></i> 
+            Выберите раздел для работы
+        </p>
+        
+        <div class="app-grid">
+            <!-- Purchasing Management -->
+            <a href="purchasing.html" class="app-card">
+                <span class="app-card-icon">📦</span>
+                <div class="app-card-title">Закупки</div>
+                <div class="app-card-desc">
+                    Управление заказами у поставщиков
+                </div>
+                <span class="app-card-badge green">Открыть</span>
+            </a>
+            
+            <!-- Inventory / Stock -->
+            <a href="inventory.html" class="app-card">
+                <span class="app-card-icon">📊</span>
+                <div class="app-card-title">Инвентаризация</div>
+                <div class="app-card-desc">
+                    Учёт товаров и расчёт выражений
+                </div>
+                <span class="app-card-badge orange">Открыть</span>
+            </a>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #f0f0f0; font-size: 0.7rem; color: #ccc;">
+            <i class="fas fa-code"></i> Auyl · Ресторанное управление
+        </div>
+    </div>
+</body>
+</html>
