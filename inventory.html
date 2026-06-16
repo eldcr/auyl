@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Ресторанный склад · инвентаризация</title>
+    
+    <!-- Font Awesome (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- External CSS file from root -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="main-container">
+    
+    <!-- Header -->
+    <div class="brand">
+        <h1><i class="fas fa-warehouse"></i> Ресторанный склад</h1>
+        <div class="subhead">
+            <i class="fas fa-calculator"></i> 
+            Введите выражение (например, <strong>0,100+0,200</strong>) · нажмите <i class="fas fa-equals"></i>
+        </div>
+    </div>
+    
+    <!-- Inventory -->
+    <div id="inventoryContainer"></div>
+    
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <button class="btn btn-primary" id="addRowBtn"><i class="fas fa-plus"></i> Добавить товар</button>
+            <button class="btn btn-outline" id="resetAllBtn"><i class="fas fa-trash-alt"></i> Сбросить всё</button>
+        </div>
+        <button class="btn btn-success" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export .xlsx</button>
+    </div>
+    
+    <!-- Copy Field -->
+    <div class="copy-field-area">
+        <div class="copy-field-header">
+            <h3>📋 Результаты <span>(скопируйте или экспортируйте)</span></h3>
+            <div class="copy-actions">
+                <button class="btn-copy" id="copyToClipboardBtn"><i class="fas fa-copy"></i> Копировать</button>
+                <button class="btn btn-outline" id="refreshCopyBtn" style="padding:0.3rem 0.9rem;font-size:0.7rem;">Обновить</button>
+            </div>
+        </div>
+        <div class="copy-field" id="copyField">// Результаты появятся здесь</div>
+    </div>
+    
+    <footer>
+        <div class="developer-credit">
+            Ресторанный склад · инвентаризация
+        </div>
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // ============================================================
+        // DATA — products by category
+        // ============================================================
+        const productData = {
+            "Товар": {
+                unit: "Кг",
+                items: [
+                    "Грибы начинка",
+                    "Джусай начинка",
+                    "Дрожжи",
+                    "Зира дешевая",
+                    "Кефир",
+                    "Кориандр",
+                    "Кумин",
+                    "Кунжут белый",
+                    "Манитоба мука",
+                    "Мука В/С",
+                    "Оливковое масло",
+                    "Растительное масло",
+                    "Сливочное масло Президент",
+                    "Сметана домашняя",
+                    "Соль",
+                    "Цельнозерновая мука",
+                    "Черный перец молотый"
+                ]
+            },
+            "Полуфабрикаты": {
+                unit: "Кг",
+                items: [
+                    "Батат п/ф",
+                    "Бауырсак тесто п/ф",
+                    "Беш тесто п/ф",
+                    "Желток п/ф",
+                    "Конина начинка п/ф",
+                    "Куриное филе п/ф",
+                    "Лапша п/Ф",
+                    "Манты п/ф",
+                    "Манты тесто п/ф",
+                    "Самса батат п/ф",
+                    "Самса грибы п/ф",
+                    "Самса конина п/ф",
+                    "Самса тесто п/ф",
+                    "Тесто самса п/ф",
+                    "Тушпара начинка п/ф",
+                    "Тушпара п/ф",
+                    "Тушпара тесто п/ф",
+                    "Тыква резанный п/ф",
+                    "Шпинат начинка готовый п/ф",
+                    "Грибная начинка с мозгом п/ф",
+                    "Грибная начинка база п/ф"
+                ]
+            },
+            "Дополнительно": {
+                unit: "Кг",
+                items: []
+            }
+        };
+        
+        // ============================================================
+        // STATE
+        // ============================================================
+        let rowCounter = 0;
+        const container = document.getElementById('inventoryContainer');
+        const copyField = document.getElementById('copyField');
+        
+        // orderMap: rowId -> { name, qty, expr, result }
+        let orderMap = new Map();
+        
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function evaluateExpression(expr) {
+            if (!expr || expr.trim() === '') return NaN;
+            const sanitized = expr.replace(/,/g, '.');
+            if (!/^[\d+\-*/().\s]+$/.test(sanitized)) return NaN;
+            try {
+                const result = new Function(`return (${sanitized})`)();
+                if (typeof result !== 'number' || !isFinite(result)) return NaN;
+                return result;
+            } catch (_) {
+                return NaN;
+            }
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+        }
+        
+        // ============================================================
+        // CREATE ROW
+        // ============================================================
+        function createRow(productName = '', expression = '', resultValue = '', unit = 'Кг') {
+            const rowId = ++rowCounter;
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.dataset.rowId = rowId;
+            
+            // Product name
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'item-name';
+            nameDiv.innerHTML = `${escapeHtml(productName)} <span class="item-unit-badge">${escapeHtml(unit)}</span>`;
+            
+            // Controls
+            const controlDiv = document.createElement('div');
+            controlDiv.className = 'item-control';
+            
+            // Minus button
+            const minusBtn = document.createElement('button');
+            minusBtn.className = 'control-btn';
+            minusBtn.textContent = '−';
+            minusBtn.type = 'button';
+            
+            // Qty input
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'number';
+            qtyInput.step = '0.01';
+            qtyInput.value = '0';
+            qtyInput.min = '0';
+            qtyInput.className = 'qty-input';
+            
+            // Expression input
+            const exprInput = document.createElement('input');
+            exprInput.type = 'text';
+            exprInput.placeholder = '0,100+...';
+            exprInput.value = expression;
+            exprInput.className = 'expr-input';
+            
+            // Calc button
+            const calcBtn = document.createElement('button');
+            calcBtn.className = 'calc-btn';
+            calcBtn.innerHTML = '<i class="fas fa-equals"></i>';
+            calcBtn.type = 'button';
+            
+            // Result display
+            const resultSpan = document.createElement('span');
+            resultSpan.className = 'result-box';
+            let displayVal = resultValue;
+            if (displayVal === '' && expression.trim() !== '') {
+                const computed = evaluateExpression(expression);
+                displayVal = (!isNaN(computed) && isFinite(computed)) ? computed.toString().replace('.', ',') : '?';
+            } else if (displayVal === '' || displayVal === undefined) {
+                displayVal = '0';
+            }
+            resultSpan.textContent = displayVal;
+            
+            // Plus button
+            const plusBtn = document.createElement('button');
+            plusBtn.className = 'control-btn';
+            plusBtn.textContent = '+';
+            plusBtn.type = 'button';
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'control-btn';
+            deleteBtn.innerHTML = '<i class="fas fa-times" style="font-size:0.7rem;"></i>';
+            deleteBtn.style.width = '22px';
+            deleteBtn.style.height = '22px';
+            deleteBtn.style.fontSize = '0.7rem';
+            deleteBtn.style.opacity = '0.4';
+            deleteBtn.addEventListener('click', function() {
+                if (container.querySelectorAll('.item-row').length <= 1) {
+                    qtyInput.value = '0';
+                    exprInput.value = '';
+                    resultSpan.textContent = '0';
+                    orderMap.delete(rowId);
+                    updateAll();
+                    return;
+                }
+                row.remove();
+                orderMap.delete(rowId);
+                updateAll();
+            });
+            
+            // Assemble
+            controlDiv.appendChild(minusBtn);
+            controlDiv.appendChild(qtyInput);
+            controlDiv.appendChild(exprInput);
+            controlDiv.appendChild(calcBtn);
+            controlDiv.appendChild(resultSpan);
+            controlDiv.appendChild(plusBtn);
+            controlDiv.appendChild(deleteBtn);
+            
+            row.appendChild(nameDiv);
+            row.appendChild(controlDiv);
+            
+            // ----- Functions -----
+            function setValue(val) {
+                let num = parseFloat(val);
+                if (isNaN(num) || num < 0) num = 0;
+                num = Math.round(num * 100) / 100;
+                qtyInput.value = num;
+                orderMap.set(rowId, { 
+                    name: productName, 
+                    qty: num, 
+                    expr: exprInput.value.trim(), 
+                    result: resultSpan.textContent,
+                    unit: unit
+                });
+                updateAll();
+            }
+            
+            // ----- Events -----
+            minusBtn.addEventListener('click', function() {
+                let current = parseFloat(qtyInput.value);
+                if (isNaN(current)) current = 0;
+                setValue(current - 1);
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                let current = parseFloat(qtyInput.value);
+                if (isNaN(current)) current = 0;
+                setValue(current + 1);
+            });
+            
+            qtyInput.addEventListener('input', function(e) {
+                let val = parseFloat(e.target.value);
+                if (isNaN(val)) val = 0;
+                if (val < 0) val = 0;
+                val = Math.round(val * 100) / 100;
+                orderMap.set(rowId, { 
+                    name: productName, 
+                    qty: val, 
+                    expr: exprInput.value.trim(), 
+                    result: resultSpan.textContent,
+                    unit: unit
+                });
+                updateAll();
+                if (qtyInput.value != val) qtyInput.value = val;
+            });
+            
+            calcBtn.addEventListener('click', function() {
+                const expr = exprInput.value.trim();
+                if (expr === '') {
+                    resultSpan.textContent = '0';
+                    updateAll();
+                    return;
+                }
+                const result = evaluateExpression(expr);
+                if (isNaN(result) || !isFinite(result)) {
+                    resultSpan.textContent = 'err';
+                } else {
+                    const formatted = result.toString().replace('.', ',');
+                    resultSpan.textContent = formatted;
+                }
+                orderMap.set(rowId, { 
+                    name: productName, 
+                    qty: parseFloat(qtyInput.value) || 0, 
+                    expr: exprInput.value.trim(), 
+                    result: resultSpan.textContent,
+                    unit: unit
+                });
+                updateAll();
+            });
+            
+            exprInput.addEventListener('input', function() {
+                orderMap.set(rowId, { 
+                    name: productName, 
+                    qty: parseFloat(qtyInput.value) || 0, 
+                    expr: exprInput.value.trim(), 
+                    result: resultSpan.textContent,
+                    unit: unit
+                });
+                updateAll();
+            });
+            
+            // Store initial
+            orderMap.set(rowId, { 
+                name: productName, 
+                qty: parseFloat(qtyInput.value) || 0, 
+                expr: exprInput.value.trim(), 
+                result: resultSpan.textContent,
+                unit: unit
+            });
+            
+            return row;
+        }
+        
+        // ============================================================
+        // RENDER ALL
+        // ============================================================
+        function renderAll() {
+            container.innerHTML = '';
+            orderMap.clear();
+            rowCounter = 0;
+            
+            for (const [categoryName, category] of Object.entries(productData)) {
+                if (category.items.length === 0) continue;
+                
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                const iconMap = {
+                    'Товар': '📦',
+                    'Полуфабрикаты': '🥩',
+                    'Дополнительно': '➕'
+                };
+                header.innerHTML = `
+                    <span>${iconMap[categoryName] || '📋'}</span> 
+                    ${categoryName}
+                    <span class="category-unit">${category.unit}</span>
+                `;
+                section.appendChild(header);
+                
+                const grid = document.createElement('div');
+                grid.className = 'items-grid';
+                
+                category.items.forEach(itemName => {
+                    const row = createRow(itemName, '', '0', category.unit);
+                    grid.appendChild(row);
+                });
+                
+                section.appendChild(grid);
+                container.appendChild(section);
+            }
+            
+            // If no rows, add one empty
+            if (container.querySelectorAll('.item-row').length === 0) {
+                const row = createRow('', '', '0', 'Кг');
+                container.appendChild(row);
+            }
+            
+            setTimeout(updateAll, 50);
+        }
+        
+        // ============================================================
+        // UPDATE ALL FIELDS
+        // ============================================================
+        function updateAll() {
+            // Update orderMap from DOM
+            const rows = container.querySelectorAll('.item-row');
+            let allLines = [];
+            let totalItems = 0;
+            
+            rows.forEach(row => {
+                const rowId = parseInt(row.dataset.rowId);
+                const nameDiv = row.querySelector('.item-name');
+                const qtyInput = row.querySelector('.qty-input');
+                const exprInput = row.querySelector('.expr-input');
+                const resultSpan = row.querySelector('.result-box');
+                
+                const name = nameDiv ? nameDiv.textContent.replace(/\s*Кг$/, '').trim() : 'unnamed';
+                const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+                const expr = exprInput ? exprInput.value.trim() : '';
+                const result = resultSpan ? resultSpan.textContent : '0';
+                
+                if (rowId) {
+                    orderMap.set(rowId, { name, qty, expr, result, unit: 'Кг' });
+                }
+                
+                if (qty > 0 || (expr && result !== '0' && result !== 'err')) {
+                    totalItems++;
+                    const displayResult = (result && result !== 'err') ? result : '0';
+                    allLines.push(`${name}: ${qty} (${displayResult})`);
+                }
+            });
+            
+            // Update copy field
+            if (allLines.length === 0) {
+                copyField.textContent = '// Нет выбранных товаров';
+            } else {
+                const dateStr = new Date().toLocaleDateString('ru-RU');
+                copyField.textContent = `📋 Результаты инвентаризации\n${dateStr}\n───────────────────\n${allLines.join('\n')}\n───────────────────\n✅ Позиций: ${allLines.length}`;
+            }
+        }
+        
+        // ============================================================
+        // EXPORT TO EXCEL
+        // ============================================================
+        function exportToExcel() {
+            const rows = container.querySelectorAll('.item-row');
+            if (rows.length === 0) {
+                showToast('Нет товаров для экспорта');
+                return;
+            }
+            
+            const data = [['Продукт', 'Количество', 'Выражение', 'Результат']];
+            let hasData = false;
+            
+            rows.forEach(row => {
+                const nameDiv = row.querySelector('.item-name');
+                const qtyInput = row.querySelector('.qty-input');
+                const exprInput = row.querySelector('.expr-input');
+                const resultSpan = row.querySelector('.result-box');
+                
+                const name = nameDiv ? nameDiv.textContent.replace(/\s*Кг$/, '').trim() : 'unnamed';
+                const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+                const expr = exprInput ? exprInput.value.trim() : '';
+                const result = resultSpan ? resultSpan.textContent : '0';
+                
+                data.push([name, qty, expr, result]);
+                if (name !== 'unnamed' || qty > 0 || expr) hasData = true;
+            });
+            
+            if (!hasData) {
+                showToast('Нет данных для экспорта');
+                return;
+            }
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Инвентаризация');
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            link.download = `склад-${dateStr}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showToast('✅ Excel экспортирован');
+        }
+        
+        // ============================================================
+        // COPY TO CLIPBOARD
+        // ============================================================
+        function copyToClipboard() {
+            const text = copyField.textContent;
+            if (!text || text.includes('Нет выбранных')) {
+                showToast('Нет данных для копирования');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Скопировано!');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('✅ Скопировано!');
+            });
+        }
+        
+        // ============================================================
+        // RESET ALL
+        // ============================================================
+        function resetAll() {
+            const rows = container.querySelectorAll('.item-row');
+            rows.forEach(row => {
+                const qtyInput = row.querySelector('.qty-input');
+                const exprInput = row.querySelector('.expr-input');
+                const resultSpan = row.querySelector('.result-box');
+                if (qtyInput) qtyInput.value = '0';
+                if (exprInput) exprInput.value = '';
+                if (resultSpan) resultSpan.textContent = '0';
+            });
+            orderMap.clear();
+            updateAll();
+            showToast('Все позиции сброшены');
+        }
+        
+        // ============================================================
+        // ADD ROW
+        // ============================================================
+        function addRow() {
+            const row = createRow('Новый товар', '', '0', 'Кг');
+            container.appendChild(row);
+            updateAll();
+            const qtyInput = row.querySelector('.qty-input');
+            if (qtyInput) setTimeout(() => qtyInput.focus(), 50);
+            showToast('✅ Товар добавлен');
+        }
+        
+        // ============================================================
+        // TOAST
+        // ============================================================
+        let toastTimeout = null;
+        function showToast(msg) {
+            const existing = document.querySelector('.toast-msg');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.remove(), 2500);
+        }
+        
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        document.getElementById('addRowBtn').addEventListener('click', addRow);
+        document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        document.getElementById('copyToClipboardBtn').addEventListener('click', copyToClipboard);
+        document.getElementById('refreshCopyBtn').addEventListener('click', updateAll);
+        
+        // ============================================================
+        // INIT
+        // ============================================================
+        renderAll();
+        
+    })();
+</script>
+</body>
+</html>
