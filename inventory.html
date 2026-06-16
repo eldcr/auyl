@@ -28,14 +28,56 @@
             gap: 0.5rem 1rem;
             padding: 0.6rem 1rem;
             border-bottom: 1px solid #f5f5f5;
+            transition: background-color 0.2s ease;
+            border-radius: 4px;
         }
         
         .item-row:last-child {
             border-bottom: none;
         }
         
-        .item-row:hover {
-            background: #fafaf8;
+        /* ============================================================
+           HIGHLIGHT STATES
+           ============================================================ */
+        
+        /* 1. When product name is selected (clicked/focused) - slight grey */
+        .item-name.selected {
+            background: #f0f0f0;
+            border-radius: 4px;
+            padding: 0.1rem 0.3rem;
+            margin: -0.1rem -0.3rem;
+            transition: background 0.2s ease;
+        }
+        
+        /* 2. When a number has been entered (expression field has value) - pale red */
+        .item-row.has-value {
+            background: #fff5f5;
+            border-left: 3px solid #e8a0a0;
+            border-radius: 4px;
+        }
+        
+        .item-row.has-value:hover {
+            background: #fff0f0;
+        }
+        
+        /* 3. When expression field is focused */
+        .weight-expr-input:focus {
+            outline: none;
+            border-color: #b88b66;
+            box-shadow: 0 0 0 3px rgba(184, 139, 102, 0.15);
+        }
+        
+        /* 4. When result has a value (not 0 or err) */
+        .weight-result-box.has-result {
+            background: #e8f5e9;
+            border-color: #81c784;
+            color: #2e7d32;
+        }
+        
+        .weight-result-box.has-result.error {
+            background: #ffebee;
+            border-color: #ef9a9a;
+            color: #c62828;
         }
         
         .item-name {
@@ -44,6 +86,10 @@
             color: #1a1a1a;
             flex: 1;
             min-width: 140px;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+            cursor: default;
         }
         
         .item-name .item-unit-badge {
@@ -56,7 +102,7 @@
             margin-left: 0.4rem;
         }
         
-        /* Weight calculator group - clean & minimal */
+        /* Weight calculator group */
         .weight-group {
             display: flex;
             align-items: center;
@@ -76,7 +122,7 @@
             text-align: center;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            transition: border-color 0.15s;
+            transition: all 0.2s ease;
         }
         
         .weight-expr-input:focus {
@@ -90,6 +136,11 @@
             font-size: 0.75rem;
         }
         
+        .weight-expr-input.has-value {
+            border-color: #e8a0a0;
+            background: #fff8f8;
+        }
+        
         .weight-calc-btn {
             background: #1a1a1a;
             border: none;
@@ -99,7 +150,7 @@
             font-weight: 500;
             cursor: pointer;
             color: white;
-            transition: 0.15s;
+            transition: all 0.15s ease;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
@@ -133,6 +184,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
         }
         
         /* Responsive */
@@ -309,9 +361,7 @@
         // ============================================================
         function evaluateExpression(expr) {
             if (!expr || expr.trim() === '') return NaN;
-            // Replace comma with dot for decimal
             const sanitized = expr.replace(/,/g, '.');
-            // Allow only digits, operators, parentheses, and whitespace
             if (!/^[\d+\-*/().\s]+$/.test(sanitized)) return NaN;
             try {
                 const result = new Function(`return (${sanitized})`)();
@@ -328,7 +378,7 @@
         }
         
         // ============================================================
-        // CREATE ROW — clean: name, expression, =, result
+        // CREATE ROW — with highlight states
         // ============================================================
         function createRow(productName = '', expression = '', resultValue = '', unit = 'Кг') {
             const rowId = ++rowCounter;
@@ -336,10 +386,20 @@
             row.className = 'item-row';
             row.dataset.rowId = rowId;
             
-            // Product name
+            // Product name with click handler for selection highlight
             const nameDiv = document.createElement('div');
             nameDiv.className = 'item-name';
             nameDiv.innerHTML = `${escapeHtml(productName)} <span class="item-unit-badge">${escapeHtml(unit)}</span>`;
+            
+            // Click on product name to highlight it (slight grey)
+            nameDiv.addEventListener('click', function(e) {
+                // Remove selected class from all product names
+                document.querySelectorAll('.item-name').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                // Add selected class to this one
+                this.classList.add('selected');
+            });
             
             // Weight calculator group
             const weightGroup = document.createElement('div');
@@ -371,6 +431,9 @@
             }
             resultSpan.textContent = displayVal;
             
+            // Set initial result class
+            updateResultClass(resultSpan);
+            
             // Assemble
             weightGroup.appendChild(exprInput);
             weightGroup.appendChild(calcBtn);
@@ -378,6 +441,44 @@
             
             row.appendChild(nameDiv);
             row.appendChild(weightGroup);
+            
+            // ============================================================
+            // UPDATE HIGHLIGHT STATES
+            // ============================================================
+            function updateRowHighlights() {
+                const expr = exprInput.value.trim();
+                const result = resultSpan.textContent;
+                const hasValue = expr !== '' && result !== '0' && result !== 'err';
+                
+                // Row highlight - pale red if has value
+                if (hasValue) {
+                    row.classList.add('has-value');
+                } else {
+                    row.classList.remove('has-value');
+                }
+                
+                // Expression input highlight - slight red border if has value
+                if (expr !== '') {
+                    exprInput.classList.add('has-value');
+                } else {
+                    exprInput.classList.remove('has-value');
+                }
+                
+                // Result box highlight
+                updateResultClass(resultSpan);
+            }
+            
+            function updateResultClass(resultSpan) {
+                const result = resultSpan.textContent;
+                if (result === 'err') {
+                    resultSpan.classList.add('has-result', 'error');
+                } else if (result !== '0' && result !== '') {
+                    resultSpan.classList.add('has-result');
+                    resultSpan.classList.remove('error');
+                } else {
+                    resultSpan.classList.remove('has-result', 'error');
+                }
+            }
             
             // ----- Events -----
             calcBtn.addEventListener('click', function() {
@@ -390,6 +491,7 @@
                         result: '0',
                         unit: unit
                     });
+                    updateRowHighlights();
                     updateAll();
                     return;
                 }
@@ -406,6 +508,7 @@
                     result: resultSpan.textContent,
                     unit: unit
                 });
+                updateRowHighlights();
                 updateAll();
             });
             
@@ -417,14 +520,22 @@
             });
             
             exprInput.addEventListener('input', function() {
+                const expr = exprInput.value.trim();
                 orderMap.set(rowId, { 
                     name: productName, 
-                    expr: exprInput.value.trim(), 
+                    expr: expr, 
                     result: resultSpan.textContent,
                     unit: unit
                 });
+                updateRowHighlights();
                 updateAll();
             });
+            
+            // Also update highlights when result changes from other interactions
+            const observer = new MutationObserver(function() {
+                updateRowHighlights();
+            });
+            observer.observe(resultSpan, { childList: true, characterData: true, subtree: true });
             
             // Store initial
             orderMap.set(rowId, { 
@@ -433,6 +544,9 @@
                 result: resultSpan.textContent,
                 unit: unit
             });
+            
+            // Initial highlight update
+            setTimeout(updateRowHighlights, 10);
             
             return row;
         }
@@ -508,7 +622,6 @@
                     orderMap.set(rowId, { name, expr, result, unit: 'Кг' });
                 }
                 
-                // Show only items with result > 0 or expression
                 const numericResult = parseFloat(result.replace(',', '.'));
                 if (expr || (numericResult > 0 && !isNaN(numericResult))) {
                     totalItems++;
@@ -517,7 +630,6 @@
                 }
             });
             
-            // Update copy field
             if (allLines.length === 0) {
                 copyField.textContent = '// Нет выбранных товаров';
             } else {
@@ -607,6 +719,12 @@
                 const resultSpan = row.querySelector('.weight-result-box');
                 if (exprInput) exprInput.value = '';
                 if (resultSpan) resultSpan.textContent = '0';
+                // Remove highlights
+                row.classList.remove('has-value');
+                if (exprInput) exprInput.classList.remove('has-value');
+                if (resultSpan) {
+                    resultSpan.classList.remove('has-result', 'error');
+                }
             });
             orderMap.clear();
             updateAll();
