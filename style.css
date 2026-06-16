@@ -1,6 +1,7 @@
 /* ----------------------------------------------
    Auyl-style design — complete CSS file
    Updated with improved supplier tabs
+   Fixed: Show number spinners on iOS/iPad
    ------------------------------------------------ */
 
 /* ----- global reset & base ----- */
@@ -10,12 +11,19 @@
     box-sizing: border-box;
 }
 
+/* Prevent zoom on double tap for iOS/iPad */
+html {
+    touch-action: manipulation;
+}
+
 body {
     background: #f5f5f5;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     padding: 1.5rem;
     color: #1a1a1a;
     line-height: 1.5;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
 }
 
 .main-container {
@@ -82,6 +90,7 @@ body {
     border: 1px solid #eaeaea;
     justify-content: center;
     align-items: center;
+    touch-action: manipulation;
 }
 
 .tab-btn {
@@ -95,6 +104,9 @@ body {
     transition: all 0.15s ease;
     color: #1a1a1a;
     white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .tab-btn:hover {
@@ -198,6 +210,8 @@ body {
     width: 100%;
     padding: 0.1rem 0;
     color: #1a1a1a;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .item-name input:focus {
@@ -225,6 +239,7 @@ body {
     border-radius: 32px;
     border: 1px solid #eaeaea;
     flex-wrap: wrap;
+    touch-action: manipulation;
 }
 
 .control-btn {
@@ -241,6 +256,9 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .control-btn:hover {
@@ -251,6 +269,7 @@ body {
     transform: scale(0.95);
 }
 
+/* ===== IMPORTANT: Show number spinners on iOS/iPad ===== */
 .qty-input {
     width: 65px;
     text-align: center;
@@ -260,6 +279,44 @@ body {
     border: none;
     background: transparent;
     font-family: monospace;
+    /* Keep spinners visible on all platforms */
+    -moz-appearance: auto;
+    appearance: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure spinners are visible on Chrome, Safari, Edge */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: auto;
+    appearance: auto;
+    margin: 0;
+    opacity: 1;
+    height: 24px;
+}
+
+/* For Firefox - show spinners */
+.qty-input[type="number"] {
+    -moz-appearance: auto;
+    appearance: auto;
+}
+
+/* iOS specific fix - force spinners to show */
+@supports (-webkit-touch-callout: none) {
+    .qty-input {
+        -webkit-appearance: auto;
+        appearance: auto;
+        font-size: 16px !important; /* Prevents iOS zoom on focus */
+    }
+    
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: auto;
+        appearance: auto;
+        opacity: 1;
+        height: 26px;
+    }
 }
 
 .qty-input:focus {
@@ -275,6 +332,7 @@ body {
     border-radius: 30px;
     padding: 0.05rem 0.3rem;
     border: 1px solid #eaeaea;
+    touch-action: manipulation;
 }
 
 .expr-input {
@@ -285,6 +343,8 @@ body {
     font-family: monospace;
     background: transparent;
     text-align: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .expr-input:focus {
@@ -301,6 +361,9 @@ body {
     cursor: pointer;
     color: #1a1a1a;
     transition: 0.1s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .calc-btn:hover {
@@ -329,6 +392,9 @@ body {
     transition: 0.15s;
     opacity: 0.5;
     border-radius: 40px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .delete-row-btn:hover {
@@ -387,6 +453,9 @@ body {
     transition: 0.15s;
     background: #f0f0f0;
     color: #1a1a1a;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .btn:hover {
@@ -516,6 +585,9 @@ body {
     font-weight: 500;
     cursor: pointer;
     font-size: 0.7rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .btn-copy:hover {
@@ -574,5 +646,48 @@ footer {
     }
     .expr-input {
         width: 60px;
+    }
+}
+
+/* ===== iPad and iOS specific fixes ===== */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific */
+    input,
+    button,
+    .btn,
+    .tab-btn,
+    .control-btn,
+    .calc-btn,
+    .delete-row-btn,
+    .btn-copy {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Keep spinners visible on iOS */
+    .qty-input {
+        -webkit-appearance: auto;
+        appearance: auto;
+        font-size: 16px !important; /* Prevents iOS zoom on focus */
+    }
+    
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: auto;
+        appearance: auto;
+        opacity: 1;
+        height: 26px;
+    }
+}
+
+/* Additional fix for iPad double-tap zoom */
+@media (hover: none) and (pointer: coarse) {
+    /* Touch devices */
+    .tab-btn,
+    .btn,
+    .control-btn,
+    .calc-btn,
+    .delete-row-btn,
+    .btn-copy {
+        cursor: default;
     }
 }
