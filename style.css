@@ -1,0 +1,493 @@
+/* ----------------------------------------------
+   Auyl-style design — extracted from reference
+   Use this as a standalone CSS file.
+   Compatible with the inventory app structure.
+   ------------------------------------------------ */
+
+/* ----- global reset & base ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 1.5rem;
+    color: #1a1a1a;
+    line-height: 1.5;
+}
+
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ----- brand / header (auyl style) ----- */
+.brand {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+}
+
+.logo-img {
+    max-width: 48px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.brand h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+}
+
+.brand h1 i {
+    color: #b88b66;
+    margin-right: 0.4rem;
+}
+
+.brand .subhead {
+    font-size: 0.85rem;
+    color: #666;
+    background: #f0f0f0;
+    padding: 0.25rem 1rem;
+    border-radius: 40px;
+    display: inline-block;
+    font-weight: 400;
+}
+
+.brand .subhead i {
+    color: #b88b66;
+}
+
+/* ----- category section (card) ----- */
+.category-section {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border: 1px solid #eaeaea;
+}
+
+.category-header {
+    background: white;
+    color: #1a1a1a;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.category-header span:first-child {
+    font-size: 1rem;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0;
+    padding: 0;
+}
+
+/* ----- item row (inside category) ----- */
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.item-row:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: #1a1a1a;
+    flex: 2;
+    min-width: 140px;
+}
+
+.item-name input {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    font-size: 0.875rem;
+    width: 100%;
+    padding: 0.1rem 0;
+    color: #1a1a1a;
+}
+
+.item-name input:focus {
+    outline: none;
+    border-bottom: 1px solid #b88b66;
+}
+
+.item-unit {
+    background: #f0f0f0;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #666;
+    margin-left: 0.5rem;
+}
+
+/* ----- item controls (qty, expression, =, result) ----- */
+.item-control {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #fafafa;
+    padding: 0.125rem 0.25rem;
+    border-radius: 32px;
+    border: 1px solid #eaeaea;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    background: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #1a1a1a;
+    transition: 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: #eaeaea;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.qty-input {
+    width: 65px;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0;
+    border: none;
+    background: transparent;
+    font-family: monospace;
+}
+
+.qty-input:focus {
+    outline: none;
+}
+
+/* expression group */
+.expr-group {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: white;
+    border-radius: 30px;
+    padding: 0.05rem 0.3rem;
+    border: 1px solid #eaeaea;
+}
+
+.expr-input {
+    width: 75px;
+    padding: 0.2rem 0.3rem;
+    border: none;
+    font-size: 0.75rem;
+    font-family: monospace;
+    background: transparent;
+    text-align: center;
+}
+
+.expr-input:focus {
+    outline: none;
+}
+
+.calc-btn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 30px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #1a1a1a;
+    transition: 0.1s;
+}
+
+.calc-btn:hover {
+    background: #e0e0e0;
+}
+
+.result-box {
+    background: #f0f0f0;
+    border-radius: 20px;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: monospace;
+    min-width: 40px;
+    text-align: center;
+    color: #1a1a1a;
+}
+
+.delete-row-btn {
+    background: transparent;
+    border: none;
+    color: #b5a28e;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: 0.15s;
+    opacity: 0.5;
+    border-radius: 40px;
+}
+
+.delete-row-btn:hover {
+    opacity: 1;
+    color: #6f4f37;
+    background: #f0f0f0;
+}
+
+/* ----- order panel (auyl style) ----- */
+.order-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border: 1px solid #eaeaea;
+}
+
+.panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.panel-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.live-badge {
+    background: #f0f0f0;
+    font-size: 0.7rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 20px;
+    font-weight: normal;
+    margin-left: 0.5rem;
+}
+
+.action-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ----- buttons ----- */
+.btn {
+    border: none;
+    padding: 0.375rem 0.875rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: 0.1s;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #1a1a1a;
+}
+
+.btn-secondary:hover {
+    background: #e5e5e5;
+}
+
+.btn-success {
+    background: #25D366;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1da851;
+}
+
+.btn-primary {
+    background: #1a1a1a;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #000;
+}
+
+/* ----- order summary preview ----- */
+.order-summary-preview {
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    color: #555;
+}
+
+/* ----- copy section (auyl style) ----- */
+.copy-section {
+    background: #fafafa;
+    border-radius: 12px;
+    margin-top: 1rem;
+    overflow: hidden;
+    border: 1px solid #eaeaea;
+}
+
+.copy-block {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.copy-block:last-child {
+    border-bottom: none;
+}
+
+.copy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.copy-header h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.copy-header h3 span {
+    font-weight: normal;
+    color: #888;
+    font-size: 0.7rem;
+}
+
+.copy-field {
+    background: white;
+    border-radius: 8px;
+    padding: 0.6rem;
+    color: #1a1a1a;
+    font-family: monospace;
+    font-size: 0.7rem;
+    white-space: pre-wrap;
+    max-height: 140px;
+    overflow-y: auto;
+    margin-bottom: 0.5rem;
+    border: 1px solid #eaeaea;
+}
+
+.copy-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-copy {
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+
+.btn-copy:hover {
+    background: #000;
+}
+
+.btn-copy-sm {
+    background: #333;
+}
+
+/* ----- toast notification ----- */
+.toast-msg {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: white;
+    padding: 0.5rem 1.2rem;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ----- footer ----- */
+footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eaeaea;
+}
+
+.developer-credit {
+    margin-top: 0.25rem;
+}
+
+.developer-credit a {
+    color: #666;
+    text-decoration: none;
+}
+
+/* ----- responsive adjustments ----- */
+@media (max-width: 680px) {
+    body {
+        padding: 0.75rem;
+    }
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+    .item-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .expr-input {
+        width: 60px;
+    }
+}
