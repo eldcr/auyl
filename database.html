@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+<title>Auyl · База данных</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--acc:#4f46e5;--acc2:#4338ca;--bg:#f5f5f3;--card:#fff;--brd:#e8e8e6;--txt:#111;--mut:#999;
+      --ok:#1e7e34;--ok-bg:#e6f4ea;--warn:#b45309;--warn-bg:#fef3c7;--code:#1e1e2e}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:3rem}
+
+/* topbar + breadcrumbs */
+.topbar{display:flex;align-items:center;gap:.7rem;padding:1.1rem 1rem .8rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--brd)}
+.crumbs{flex:1;display:flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:700;min-width:0}
+.crumbs a{color:var(--acc);text-decoration:none;font-weight:600}
+.crumbs a:hover{text-decoration:underline}
+.crumbs .csep{color:var(--mut);font-weight:400}
+.crumbs .ccur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gear{background:none;border:1px solid var(--brd);border-radius:9px;padding:.4rem .6rem;font-size:.95rem;cursor:pointer;color:var(--mut)}
+
+.wrap{max-width:760px;margin:0 auto;padding:.5rem 1rem}
+
+/* connection bar */
+.conn{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;border-radius:12px;font-size:.85rem;font-weight:600;margin:.5rem 0;cursor:pointer;border:1px solid}
+.conn.on{background:var(--ok-bg);border-color:#a8d5b5;color:var(--ok)}
+.conn.off{background:var(--warn-bg);border-color:#fde68a;color:var(--warn)}
+.conn .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.conn.on .dot{background:var(--ok)}
+.conn.off .dot{background:var(--warn)}
+.conn .arrow{margin-left:auto;opacity:.6}
+
+/* summary grid */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0 1rem}
+@media(min-width:560px){.sgrid{grid-template-columns:repeat(4,1fr)}}
+.scard{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.85rem .9rem;border-top:3px solid var(--acc)}
+.scard .ic{font-size:1.3rem}
+.scard .nm{font-size:.78rem;color:var(--mut);margin-top:.25rem;font-weight:600}
+.scard .vl{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-top:.1rem}
+.scard .sub{font-size:.7rem;color:var(--mut);margin-top:.1rem}
+
+/* send panel */
+.send-panel{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:1.1rem;margin-bottom:1rem}
+.send-panel .sp-name{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.85rem}
+.send-panel label{font-size:.74rem;color:var(--mut);font-weight:600}
+.send-panel input{border:1px solid var(--brd);border-radius:10px;padding:.6rem .75rem;font-size:.9rem;font-family:inherit;background:var(--bg);color:var(--txt);outline:none}
+.send-panel input:focus{border-color:var(--acc);background:#fff}
+.btn-send{width:100%;background:var(--acc);color:#fff;border:none;border-radius:13px;padding:.95rem;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:transform .1s,opacity .15s}
+.btn-send:active{transform:scale(.98)}
+.btn-send:disabled{opacity:.6;cursor:default}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn-send.sending .spin{display:inline-block}
+.fallbacks{display:flex;gap:.5rem;margin-top:.7rem}
+.fallbacks button{flex:1;background:var(--bg);border:1px solid var(--brd);border-radius:10px;padding:.6rem;font-size:.8rem;font-weight:600;color:var(--txt);cursor:pointer}
+.fallbacks button:hover{border-color:var(--acc);color:var(--acc)}
+.lastsent{font-size:.75rem;color:var(--mut);text-align:center;margin-top:.7rem}
+.hint{font-size:.76rem;color:var(--mut);line-height:1.5;margin-top:.6rem;text-align:center}
+
+/* review */
+.rev{background:var(--card);border:1px solid var(--brd);border-radius:14px;margin-bottom:.6rem;overflow:hidden}
+.rev>summary{list-style:none;cursor:pointer;padding:.85rem 1rem;display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.92rem}
+.rev>summary::-webkit-details-marker{display:none}
+.rev>summary .cnt{margin-left:auto;font-size:.78rem;font-weight:600;color:var(--mut);background:var(--bg);border:1px solid var(--brd);border-radius:20px;padding:.15rem .6rem}
+.rev>summary .chev{color:#ccc;transition:transform .15s}
+.rev[open]>summary .chev{transform:rotate(90deg)}
+.tbl-scroll{overflow-x:auto;border-top:1px solid var(--brd)}
+table{border-collapse:collapse;width:100%;font-size:.76rem}
+th,td{border-bottom:1px solid #f1f1ef;padding:.4rem .6rem;text-align:left;white-space:nowrap}
+th{background:#fafaf8;color:var(--mut);font-weight:700;position:sticky;top:0}
+.more{padding:.55rem 1rem;font-size:.74rem;color:var(--mut);background:#fafaf8}
+.rev-empty{padding:.9rem 1rem;font-size:.82rem;color:var(--mut)}
+
+/* overlay/settings */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;align-items:flex-end;justify-content:center}
+.ov.open{display:flex}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;padding:1.1rem 1.2rem 2.5rem;animation:up .2s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.handle{width:36px;height:4px;background:var(--brd);border-radius:4px;margin:0 auto .9rem}
+.sheet h2{font-size:1.1rem;font-weight:800;margin-bottom:.3rem}
+.sheet .lead{font-size:.82rem;color:var(--mut);line-height:1.5;margin-bottom:1rem}
+.fld{margin-bottom:.85rem}
+.fld label{display:block;font-size:.76rem;color:var(--mut);font-weight:600;margin-bottom:.3rem}
+.fld input{width:100%;border:1px solid var(--brd);border-radius:10px;padding:.6rem .75rem;font-size:.88rem;font-family:inherit;background:var(--bg);color:var(--txt);outline:none}
+.fld input:focus{border-color:var(--acc);background:#fff}
+.row-btns{display:flex;gap:.5rem;margin:.4rem 0 1rem}
+.row-btns button{flex:1;border-radius:10px;padding:.65rem;font-size:.85rem;font-weight:700;cursor:pointer;border:none}
+.b-primary{background:var(--acc);color:#fff}
+.b-ghost{background:var(--bg);color:var(--txt);border:1px solid var(--brd)!important}
+
+/* setup guide */
+.guide{border:1px solid var(--brd);border-radius:12px;overflow:hidden;margin-top:.5rem}
+.guide>summary{cursor:pointer;list-style:none;padding:.8rem .9rem;font-weight:700;font-size:.88rem;background:#fafaf8;display:flex;align-items:center;gap:.5rem}
+.guide>summary::-webkit-details-marker{display:none}
+.guide-body{padding:.9rem;font-size:.82rem;line-height:1.6}
+.guide-body ol{padding-left:1.2rem;margin:.3rem 0 .8rem}
+.guide-body li{margin-bottom:.45rem}
+.guide-body b{font-weight:700}
+.codebox{position:relative;background:var(--code);color:#e4e4ef;border-radius:10px;padding:.85rem .9rem;margin:.5rem 0;overflow-x:auto}
+.codebox pre{font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;line-height:1.5;white-space:pre;color:#e4e4ef}
+.copy-code{position:absolute;top:.55rem;right:.55rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:.25rem .6rem;font-size:.72rem;font-weight:600;cursor:pointer}
+.copy-code:hover{background:rgba(255,255,255,.22)}
+
+/* toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--txt);color:#fff;font-size:.88rem;font-weight:600;padding:.7rem 1.2rem;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok)}
+.toast.err{background:#c5221f}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <nav class="crumbs">
+    <a href="index.html">Главная</a>
+    <span class="csep">/</span>
+    <span class="ccur">🗄️ База данных</span>
+  </nav>
+  <button class="gear" onclick="openSettings()">⚙️</button>
+</div>
+
+<div class="wrap">
+
+  <div id="connBar" class="conn off" onclick="openSettings()">
+    <span class="dot"></span>
+    <span id="connText">Не подключено к Google Таблице — нажмите, чтобы настроить</span>
+    <span class="arrow">›</span>
+  </div>
+
+  <div class="sgrid" id="sgrid"></div>
+
+  <div class="send-panel">
+    <div class="sp-name">
+      <label>Ваше имя / станция (кто отправляет)</label>
+      <input type="text" id="sender" placeholder="напр. Айдос — Холодный цех" oninput="saveSender()">
+    </div>
+    <button class="btn-send" id="sendBtn" onclick="sendToSheet()">
+      <span class="spin"></span>
+      <span id="sendLabel">📤 Отправить в Google Таблицу</span>
+    </button>
+    <div class="fallbacks">
+      <button onclick="downloadJSON()">⬇️ Резервная копия (.json)</button>
+      <button onclick="downloadCSV()">⬇️ Скачать CSV</button>
+    </div>
+    <div class="lastsent" id="lastSent"></div>
+    <div class="hint">Каждый повар заполняет свою станцию и отправляет. Главный повар смотрит сводку в Google Таблице.</div>
+  </div>
+
+  <div id="review"></div>
+
+</div>
+
+<!-- SETTINGS -->
+<div class="ov" id="settingsOv" onclick="ovBg(event,'settingsOv')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2>Подключение к Google Таблице</h2>
+    <p class="lead">Вставьте ссылку веб-приложения Google Apps Script. Все отправки будут добавляться в вашу Google Таблицу.</p>
+
+    <div class="fld">
+      <label>Ссылка веб-приложения (URL)</label>
+      <input type="url" id="urlInput" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="row-btns">
+      <button class="b-ghost" onclick="testConnection()">Проверить</button>
+      <button class="b-primary" onclick="saveUrl()">Сохранить</button>
+    </div>
+
+    <details class="guide">
+      <summary>📋 Как создать базу (пошагово)</summary>
+      <div class="guide-body">
+        <ol>
+          <li>Откройте <b>sheets.google.com</b> и создайте новую таблицу (это и есть ваша база).</li>
+          <li>Меню <b>Расширения → Apps Script</b>.</li>
+          <li>Удалите код в окне и вставьте код ниже. Нажмите <b>Сохранить</b> (значок дискеты).</li>
+          <li>Нажмите <b>Развернуть → Новое развёртывание</b>.</li>
+          <li>Тип: <b>Веб-приложение</b>. «Кто имеет доступ» → <b>Все</b>. Нажмите <b>Развернуть</b>, разрешите доступ.</li>
+          <li>Скопируйте <b>URL веб-приложения</b> и вставьте его в поле выше. Готово!</li>
+        </ol>
+        <div class="codebox">
+          <button class="copy-code" onclick="copyCode()">Копировать</button>
+          <pre id="gsCode"></pre>
+        </div>
+        <div style="font-size:.78rem;color:var(--mut)">Каждая кухонная станция получает свою отдельную вкладку (Кондитерка, Мучной цех и т.д.), плюс вкладки Списания, Накладные, Сотрудники. Повторные записи одной позиции суммируются. Каждая отправка добавляет строки с датой и именем отправителя.</div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════ KEYS ════════
+const K_INV='auyl_inv_v3', K_WO='auyl_wo_v3', K_INVOICE='auyl_invoices_v2', K_STAFF='auyl_staff_v1';
+const K_URL='auyl_db_url', K_SENDER='auyl_db_sender', K_LAST='auyl_db_lastsend';
+// Pre-configured Google Apps Script web-app endpoint (used unless overridden in settings)
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycbz083WqanbqliGb0yZoCWudwx35rXLKpCqOPDhRB7owPxcrvAd7TCrttN4tTp3s1Wje0A/exec';
+function getUrl(){return localStorage.getItem(K_URL)||DEFAULT_URL;}
+
+// id → human names (mirror of the other pages)
+const ST_MAP={k:'Кондитерка',mc:'Мучной цех',gs:'Горячий (Сервис)',tn:'Тандыр',pm:'Плюс мясо',gz:'Горячий (ЗЦ)',pl:'Плюс',hp:'Хоспер',sk:'Сухой склад',vs:'Вок сервис',cz:'Холодный (ЗЦ)',rz:'Раздача',cs:'Холодный (Сервис)',hz:'Хоспер (ЗЦ)',mn:'Минус'};
+const ST_ICON={k:'🍰',mc:'🥐',gs:'🔥',tn:'🫓',pm:'🥩',gz:'🍲',pl:'🥦',hp:'🍖',sk:'📦',vs:'🥢',cz:'❄️',rz:'🍽️',cs:'🥗',hz:'🍗',mn:'⚖️'};
+const SEC_TITLES={sluzh:'Служебное питание',porcha:'Порча',open:'Open Food',ukr:'Украшения',mkt:'Маркетинг',menu:'Меню',otr:'Отработки',nev:'Невозвратные отходы',b2k:'Перемещения: с бара на кухню',k2b:'Перемещения: с кухни на бар'};
+
+function readJSON(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
+
+// ════════ FLATTENERS ════════
+function fmtNum(n){return Number.isInteger(n)?n:parseFloat(n.toFixed(3));}
+// Unit families for smart summing: г↔кг and мл↔л convert to a base unit; counts (шт/порции/уп) stay separate.
+const UNIT_CONV={'кг':{f:'w',m:1},'г':{f:'w',m:0.001},'л':{f:'v',m:1},'мл':{f:'v',m:0.001}};
+const FAM_BASE={w:'кг',v:'л'};
+// One block per kitchen station. Multiple records of the same item (same station+date)
+// are summed into a single row.
+const INV_HEADERS=['Дата','Повар','Позиция','Кол-во','Ед.','Записи'];
+function invBlocksByStation(){
+  const data=readJSON(K_INV,{});
+  const acc={}; // sid -> rows[]
+  Object.keys(data).sort().forEach(date=>{
+    const stations=data[date]||{};
+    Object.keys(stations).forEach(sid=>{
+      const sd=stations[sid]||{}; const cook=sd.cook||'';
+      const push=(name,entries)=>{
+        const valid=(entries||[]).filter(e=>e&&e.q!==''&&e.q!=null);
+        if(!valid.length) return;
+        const fams={};
+        const addFam=(u,val)=>{
+          const info=UNIT_CONV[u];
+          const fk=info?'f:'+info.f:'u:'+u;
+          if(!fams[fk]) fams[fk]={base:info?FAM_BASE[info.f]:u,baseSum:0,units:{}};
+          fams[fk].baseSum+=(val||0)*(info?info.m:1);
+          fams[fk].units[u]=(fams[fk].units[u]||0)+(val||0);
+        };
+        valid.forEach(e=>{
+          addFam(e.u||'',parseFloat(e.q)||0);
+          if(e.p) addFam('шт',parseFloat(e.p)||0); // legacy separate-pieces field
+        });
+        // same unit → keep it (60г+40г=100г); mixed within a family → base unit (60г+90кг=90.06кг)
+        const famStr=f=>{
+          const us=Object.keys(f.units);
+          return us.length===1?`${fmtNum(f.units[us[0]])} ${us[0]}`:`${fmtNum(f.baseSum)} ${f.base}`;
+        };
+        const fk=Object.keys(fams);
+        let qty,unit;
+        if(fk.length===1){
+          const f=fams[fk[0]],us=Object.keys(f.units);
+          if(us.length===1){ qty=fmtNum(f.units[us[0]]); unit=us[0]; }
+          else { qty=fmtNum(f.baseSum); unit=f.base; }
+        } else { qty=fk.map(famStr).join(' + '); unit=''; }
+        // breakdown of each record — reveals calculator math (3шт×0.5кг) or legacy pieces
+        const showBreak=valid.length>1||valid.some(e=>e.raw&&e.raw.qty&&e.raw.weight);
+        const breakdown=showBreak
+          ? valid.map(e=>{
+              if(e.raw&&e.raw.qty&&e.raw.weight) return `${fmtNum(parseFloat(e.raw.qty)||0)}шт×${fmtNum(parseFloat(e.raw.weight)||0)}${e.raw.unit||''}`;
+              return `${fmtNum(parseFloat(e.q)||0)}${e.u||''}${e.p?` (${e.p}шт)`:''}`;
+            }).join(' + ')
+          : '';
+        (acc[sid]=acc[sid]||[]).push([date,cook,name,qty,unit,breakdown]);
+      };
+      const items=sd.items||{};
+      Object.keys(items).forEach(name=>{
+        let e=items[name];
+        if(!Array.isArray(e)) e=e?[{q:String(e),u:'кг'}]:[];
+        push(name,e);
+      });
+      (sd.custom||[]).forEach(c=>push(c.n||'',c.entries||[]));
+    });
+  });
+  const blocks=[];
+  Object.keys(ST_MAP).forEach(sid=>{ if(acc[sid]&&acc[sid].length) blocks.push({sid,sname:ST_MAP[sid],headers:INV_HEADERS,rows:acc[sid]}); });
+  Object.keys(acc).forEach(sid=>{ if(!ST_MAP[sid]&&acc[sid].length) blocks.push({sid,sname:sid,headers:INV_HEADERS,rows:acc[sid]}); });
+  return blocks;
+}
+function woRows(){
+  const recs=readJSON(K_WO,[]); const rows=[];
+  recs.forEach(r=>{
+    const date=r.date||'', chefs=r.chefs||'';
+    Object.keys(SEC_TITLES).forEach(sid=>{
+      const blk=r[sid]; if(!blk) return;
+      (blk.items||[]).forEach(it=>{ if(it&&it.q) rows.push([date,chefs,SEC_TITLES[sid],it.n,it.q,it.u||'']); });
+      (blk.custom||[]).forEach(c=>{ if(c&&c.n&&c.q) rows.push([date,chefs,SEC_TITLES[sid],c.n,c.q,c.u||'']); });
+    });
+  });
+  return {headers:['Дата','Су-шефы','Раздел','Позиция','Кол-во','Ед.'],rows};
+}
+function invoiceRows(){
+  const recs=readJSON(K_INVOICE,[]);
+  const rows=recs.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))
+    .map(i=>[i.date||'',i.supplier||'',i.status||'',i.person||'',i.note||'',i.linkX||'',i.linkV||'']);
+  return {headers:['Дата','Поставщик','Статус','Ответственный','Примечание','Черновик','Чистовик'],rows};
+}
+function staffRows(){
+  const recs=readJSON(K_STAFF,[]); const rows=[];
+  recs.forEach(s=>{
+    const base=[s.name||'',s.role||'',s.phone||'',s.iin||'',s.dob||'',s.start||''];
+    if(s.docs&&s.docs.length){ s.docs.forEach(d=>rows.push([...base,d.type||'',d.number||'',d.issued||'',d.expires||''])); }
+    else rows.push([...base,'','','','']);
+  });
+  return {headers:['ФИО','Должность','Телефон','ИИН','Дата рожд.','Дата приёма','Документ','Номер','Выдан','До'],rows};
+}
+
+function collect(){
+  return {invStations:invBlocksByStation(),wo:woRows(),invoice:invoiceRows(),staff:staffRows()};
+}
+
+// ════════ RENDER ════════
+function render(){
+  const c=collect();
+  // summary
+  const invDates=Object.keys(readJSON(K_INV,{})).length;
+  const invTotal=c.invStations.reduce((s,b)=>s+b.rows.length,0);
+  const cards=[
+    {ic:'📊',nm:'Инвентаризация',vl:invTotal,sub:c.invStations.length?`${c.invStations.length} станций · ${invDates} дат`:'нет данных'},
+    {ic:'🗑️',nm:'Списания',vl:c.wo.rows.length,sub:`${readJSON(K_WO,[]).length} дней`},
+    {ic:'🧾',nm:'Накладные',vl:c.invoice.rows.length,sub:''},
+    {ic:'👥',nm:'Сотрудники',vl:readJSON(K_STAFF,[]).length,sub:`${c.staff.rows.length} строк`}
+  ];
+  document.getElementById('sgrid').innerHTML=cards.map(x=>`
+    <div class="scard"><div class="ic">${x.ic}</div><div class="nm">${x.nm}</div>
+      <div class="vl">${x.vl}</div><div class="sub">${x.sub}</div></div>`).join('');
+
+  // review accordions — one per kitchen station, then the other sheets
+  const invBlocksHtml=c.invStations.length
+    ? c.invStations.map(b=>revBlock((ST_ICON[b.sid]||'📊')+' '+b.sname,b)).join('')
+    : revBlock('📊 Инвентаризация',{headers:INV_HEADERS,rows:[]});
+  document.getElementById('review').innerHTML=
+    invBlocksHtml+
+    revBlock('🗑️ Списания',c.wo)+
+    revBlock('🧾 Накладные',c.invoice)+
+    revBlock('👥 Сотрудники',c.staff);
+
+  // connection
+  const url=getUrl();
+  const bar=document.getElementById('connBar'), txt=document.getElementById('connText');
+  if(url){bar.className='conn on';txt.textContent='Подключено к Google Таблице · нажмите, чтобы изменить';}
+  else{bar.className='conn off';txt.textContent='Не подключено к Google Таблице — нажмите, чтобы настроить';}
+
+  // sender + last sent
+  document.getElementById('sender').value=localStorage.getItem(K_SENDER)||'';
+  const last=readJSON(K_LAST,null);
+  document.getElementById('lastSent').textContent=last?`Последняя отправка: ${new Date(last.at).toLocaleString('ru-RU')} · ${last.rows} строк`:'Ещё не отправлялось';
+}
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function revBlock(title,block){
+  const n=block.rows.length;
+  if(!n) return `<details class="rev"><summary><span>${title}</span><span class="cnt">0</span><span class="chev">›</span></summary><div class="rev-empty">Нет данных.</div></details>`;
+  const show=block.rows.slice(0,20);
+  const head=`<tr>${block.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>`;
+  const body=show.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('');
+  const more=n>20?`<div class="more">…ещё ${n-20} строк — будут отправлены полностью</div>`:'';
+  return `<details class="rev"><summary><span>${title}</span><span class="cnt">${n} строк</span><span class="chev">›</span></summary>
+    <div class="tbl-scroll"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>${more}</details>`;
+}
+
+// ════════ PAYLOAD ════════
+function buildPayload(){
+  const c=collect();
+  const at=new Date().toISOString();
+  const sender=localStorage.getItem(K_SENDER)||'';
+  const stamp=new Date().toLocaleString('ru-RU');
+  const withMeta=b=>({headers:['Отправлено','Отправитель',...b.headers],rows:b.rows.map(r=>[stamp,sender,...r])});
+  const sheets={};
+  c.invStations.forEach(b=>{ sheets[b.sname]=withMeta(b); });
+  sheets['Списания']=withMeta(c.wo);
+  sheets['Накладные']=withMeta(c.invoice);
+  sheets['Сотрудники']=withMeta(c.staff);
+  return {device:sender,sentAt:at,sheets};
+}
+function totalRows(p){return Object.values(p.sheets).reduce((s,b)=>s+b.rows.length,0);}
+
+// ════════ SEND ════════
+async function sendToSheet(){
+  const url=getUrl();
+  if(!url){openSettings();toast('Сначала подключите Google Таблицу','err');return;}
+  const payload=buildPayload();
+  const total=totalRows(payload);
+  if(total===0){toast('Нет данных для отправки','err');return;}
+  setSending(true);
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    setSending(false);
+    localStorage.setItem(K_LAST,JSON.stringify({at:new Date().toISOString(),rows:total}));
+    toast('✓ Отправлено: '+total+' строк','ok');
+    render();
+    setTimeout(askClear,500);
+  }catch(err){
+    setSending(false);
+    toast('Ошибка сети. Проверьте интернет и ссылку.','err');
+  }
+}
+function setSending(on){
+  const b=document.getElementById('sendBtn');
+  b.disabled=on; b.classList.toggle('sending',on);
+  document.getElementById('sendLabel').textContent=on?'Отправка…':'📤 Отправить в Google Таблицу';
+}
+function askClear(){
+  if(confirm('Данные отправлены ✓\n\nОчистить инвентаризацию и списания на этом устройстве, чтобы начать новый период?\n\n(Сотрудники и накладные сохранятся.)')){
+    localStorage.removeItem(K_INV);
+    localStorage.removeItem(K_WO);
+    render();
+    toast('Инвентаризация и списания очищены','ok');
+  }
+}
+
+async function testConnection(){
+  const url=document.getElementById('urlInput').value.trim()||getUrl();
+  if(!url){toast('Введите ссылку','err');return;}
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({sheets:{'Тест':{headers:['Проверка','Время'],rows:[['OK',new Date().toLocaleString('ru-RU')]]}}})});
+    toast('Отправлен тест — проверьте вкладку «Тест» в таблице','ok');
+  }catch(e){toast('Не удалось отправить тест','err');}
+}
+
+// ════════ FALLBACK DOWNLOADS ════════
+function dl(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+text],{type}));a.download=name;a.click();}
+function downloadJSON(){
+  const backup={inv:readJSON(K_INV,{}),wo:readJSON(K_WO,[]),invoices:readJSON(K_INVOICE,[]),staff:readJSON(K_STAFF,[]),exportedAt:new Date().toISOString()};
+  dl(`auyl_backup_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(backup,null,2),'application/json');
+}
+function toCSV(rows){return rows.map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');}
+function downloadCSV(){
+  const c=collect(); let out='';
+  c.invStations.forEach(b=>{ out+='ИНВЕНТАРИЗАЦИЯ — '+b.sname+'\n'+toCSV([b.headers,...b.rows])+'\n\n'; });
+  const blocks={'СПИСАНИЯ':c.wo,'НАКЛАДНЫЕ':c.invoice,'СОТРУДНИКИ':c.staff};
+  Object.keys(blocks).forEach(name=>{const b=blocks[name];out+=name+'\n'+toCSV([b.headers,...b.rows])+'\n\n';});
+  dl(`auyl_${new Date().toISOString().slice(0,10)}.csv`,out,'text/csv;charset=utf-8');
+}
+
+// ════════ SETTINGS ════════
+function openSettings(){
+  document.getElementById('urlInput').value=getUrl();
+  document.getElementById('settingsOv').classList.add('open');
+}
+function closeSettings(){document.getElementById('settingsOv').classList.remove('open');}
+function ovBg(e,id){if(e.target===document.getElementById(id))closeSettings();}
+function saveUrl(){
+  const v=document.getElementById('urlInput').value.trim();
+  if(v && !/^https:\/\/script\.google\.com\/macros\//.test(v)){
+    if(!confirm('Ссылка не похожа на адрес Apps Script. Сохранить всё равно?'))return;
+  }
+  localStorage.setItem(K_URL,v);
+  render(); closeSettings();
+  toast(v?'Подключено ✓':'Ссылка удалена','ok');
+}
+function saveSender(){localStorage.setItem(K_SENDER,document.getElementById('sender').value);}
+
+// ════════ APPS SCRIPT CODE ════════
+const GS_CODE=`function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var data = JSON.parse(e.postData.contents);
+  var sheets = data.sheets || {};
+  Object.keys(sheets).forEach(function (name) {
+    var block = sheets[name];
+    var sh = ss.getSheetByName(name) || ss.insertSheet(name);
+    if (sh.getLastRow() === 0 && block.headers && block.headers.length) {
+      sh.appendRow(block.headers);
+    }
+    (block.rows || []).forEach(function (row) { sh.appendRow(row); });
+  });
+  return ContentService
+    .createTextOutput(JSON.stringify({ ok: true }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet() {
+  return ContentService.createTextOutput('Auyl DB endpoint OK');
+}`;
+function copyCode(){
+  navigator.clipboard.writeText(GS_CODE).then(()=>toast('Код скопирован','ok'),()=>{
+    const ta=document.createElement('textarea');ta.value=GS_CODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Код скопирован','ok');
+  });
+}
+
+// ════════ TOAST ════════
+let toastT=null;
+function toast(msg,kind){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(kind?' '+kind:'');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast',2200);
+}
+
+// ════════ INIT ════════
+document.getElementById('gsCode').textContent=GS_CODE;
+render();
+</script>
+<footer style="text-align:center;padding:1.6rem 1rem 2.2rem;color:#bbb;font-size:.72rem;letter-spacing:.02em;line-height:1.5">Persolem v0.1 · Yeldar Akimkhan · eldar@chef.net</footer>
+</body>
+</html>

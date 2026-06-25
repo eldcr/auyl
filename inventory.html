@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+<title>Auyl · Инвентаризация</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f5f3;--card:#fff;--brd:#e8e8e6;--txt:#111;--mut:#999;--acc:#1a73e8;--ok:#1e7e34;--ok-bg:#f0fdf4;--ok-brd:#86efac}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+.topbar{display:flex;align-items:center;gap:.7rem;padding:1rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--brd)}
+.topbar h1{font-size:1.05rem;font-weight:700;flex:1}
+a.back{text-decoration:none;color:var(--acc);font-size:1.3rem}
+.tbtn{background:none;border:1px solid var(--brd);border-radius:8px;padding:.35rem .65rem;font-size:.8rem;cursor:pointer;color:var(--mut)}
+.date-row{display:flex;align-items:flex-end;gap:.9rem;padding:.7rem 1rem .4rem;max-width:700px;margin:0 auto}
+.date-row label{font-size:.72rem;color:var(--mut);display:block;margin-bottom:.2rem}
+.date-row input[type=date]{border:1px solid var(--brd);border-radius:10px;padding:.5rem .75rem;font-size:.9rem;background:var(--card);color:var(--txt);outline:none;font-family:inherit}
+.date-row input:focus{border-color:var(--acc)}
+.dlbl{font-size:.82rem;color:var(--mut);padding-bottom:.4rem}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:.25rem 1rem 2rem;max-width:700px;margin:0 auto}
+@media(min-width:480px){.sgrid{grid-template-columns:1fr 1fr 1fr}}
+.sc{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.9rem .85rem;cursor:pointer;transition:transform .12s;border-top-width:3px}
+.sc:active{transform:scale(.96)}
+.sico{font-size:1.5rem;margin-bottom:.3rem}
+.snm{font-size:.85rem;font-weight:700;line-height:1.2}
+.smeta{font-size:.72rem;color:var(--mut);margin-top:.2rem}
+.sprog{font-size:.7rem;margin-top:.3rem;font-weight:600}
+
+/* FORM */
+#vForm{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:3rem}
+.ftop{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;background:var(--bg);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:10;gap:.5rem}
+.ft{font-weight:700;font-size:.95rem;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bback{background:none;border:none;font-size:1.2rem;color:var(--acc);cursor:pointer;padding:.2rem .3rem;flex-shrink:0}
+.bsave{background:var(--acc);color:#fff;border:none;border-radius:9px;padding:.42rem .85rem;font-size:.85rem;font-weight:600;cursor:pointer;flex-shrink:0}
+.fbody{padding:.6rem 1rem;max-width:700px;margin:0 auto}
+.cook-card{background:var(--card);border:1px solid var(--brd);border-radius:13px;padding:.8rem .9rem;margin-bottom:.6rem;display:flex;gap:.7rem;flex-wrap:wrap}
+.fhf{flex:1;min-width:130px}
+.fhf label{font-size:.73rem;color:var(--mut);display:block;margin-bottom:.22rem}
+.fhf input{width:100%;border:1px solid var(--brd);border-radius:8px;padding:.48rem .65rem;font-size:.88rem;color:var(--txt);background:var(--bg);outline:none;font-family:inherit}
+.fhf input:focus{border-color:var(--acc)}
+.sec{background:var(--card);border:1px solid var(--brd);border-radius:13px;margin-bottom:.6rem;overflow:hidden}
+.shead{display:flex;align-items:center;justify-content:space-between;padding:.58rem .85rem;color:#fff}
+.sh-t{font-size:.82rem;font-weight:700}
+.sh-u{font-size:.75rem;opacity:.8}
+.sh-add{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:.15rem .5rem;font-size:.72rem;cursor:pointer;color:#fff}
+.sublbl{padding:.42rem .85rem .18rem;font-size:.72rem;font-weight:700;color:var(--mut);background:#f9f9f7;border-top:1px solid var(--brd);letter-spacing:.02em}
+
+/* ITEM ROW */
+.irow{display:flex;align-items:center;gap:.5rem;padding:.42rem .85rem;border-top:1px solid var(--brd);min-height:46px}
+.iname{flex:1;font-size:.82rem;line-height:1.3;min-width:0}
+.iadd{background:none;border:1.5px solid var(--brd);border-radius:8px;width:34px;height:34px;font-size:1.25rem;cursor:pointer;color:var(--mut);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.iadd:active{border-color:var(--acc);color:var(--acc)}
+.ivals{display:flex;gap:.28rem;flex-wrap:wrap;align-items:center;justify-content:flex-end;flex-shrink:0;max-width:55%}
+.chip{background:var(--ok-bg);border:1px solid var(--ok-brd);border-radius:20px;padding:.18rem .55rem;font-size:.72rem;font-weight:600;color:var(--ok);white-space:nowrap}
+.chip-empty{font-size:.78rem;color:#ccc}
+.chip-tot{font-size:.76rem;font-weight:700;color:var(--ok);white-space:nowrap}
+.chip-tot-pcs{font-size:.76rem;font-weight:700;color:#e65100;white-space:nowrap}
+
+.bexp{width:100%;background:#0277bd;color:#fff;border:none;border-radius:12px;padding:.75rem;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:.3rem}
+.bsend{width:100%;background:#1e7e34;color:#fff;border:none;border-radius:12px;padding:.85rem;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:.5rem;display:flex;align-items:center;justify-content:center;gap:.45rem}
+.bsend:active{transform:scale(.99)}
+.bsend:disabled{opacity:.6;cursor:default}
+.appfoot{text-align:center;padding:1.6rem 1rem 2.2rem;color:#bbb;font-size:.72rem;letter-spacing:.02em;line-height:1.5}
+
+/* POPUPS */
+.pop-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70;align-items:flex-end;justify-content:center}
+.pop-ov.open{display:flex}
+.pop{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:1rem 1.2rem 2.5rem;animation:pu .2s ease}
+@keyframes pu{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+.pop-hdl{width:36px;height:4px;background:var(--brd);border-radius:4px;margin:0 auto .85rem}
+
+/* ENTRY POPUP */
+.ep-title{font-size:1rem;font-weight:700;margin-bottom:.7rem}
+.ep-log{min-height:28px;margin-bottom:.7rem}
+.ep-log-lbl{font-size:.7rem;color:var(--mut);margin-bottom:.35rem;font-weight:500}
+.ep-chips{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.ep-chip{background:var(--ok-bg);border:1px solid var(--ok-brd);border-radius:20px;padding:.2rem .6rem;font-size:.78rem;font-weight:600;color:var(--ok);display:flex;align-items:center;gap:.35rem}
+.ep-chip button{background:none;border:none;color:#aaa;cursor:pointer;font-size:.9rem;line-height:1;padding:0}
+.ep-chip button:hover{color:#ea4335}
+.ep-tot{font-size:.78rem;font-weight:700;color:var(--ok);margin-top:.35rem}
+.ep-tot-pcs{font-size:.78rem;font-weight:700;color:#e65100;margin-top:.2rem}
+
+/* CALCULATOR */
+.ep-calc{background:#f8f9fa;border-radius:10px;padding:.6rem .8rem;margin-bottom:.6rem;border:1px solid var(--brd)}
+.ep-calc-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.ep-calc-row .ep-f{flex:1;min-width:70px}
+.ep-calc-row .ep-f input,.ep-calc-row .ep-f select{padding:.45rem .6rem;font-size:.9rem;font-weight:400}
+.ep-calc-result{font-size:.85rem;font-weight:600;color:var(--acc);margin-top:.3rem;text-align:center}
+
+.ep-row{display:flex;gap:.6rem;margin-bottom:.1rem}
+.ep-f{flex:1}
+.ep-f label{display:block;font-size:.73rem;color:var(--mut);margin-bottom:.25rem;font-weight:500}
+.ep-f input,.ep-f select{width:100%;border:1px solid var(--brd);border-radius:9px;padding:.6rem .75rem;font-size:1.1rem;color:var(--txt);background:var(--bg);outline:none;font-family:inherit;font-weight:600}
+.ep-f input:focus,.ep-f select:focus{border-color:var(--acc);background:#fff}
+.ep-acts{display:flex;gap:.6rem;margin-top:.85rem}
+.ep-save{flex:1;background:var(--acc);color:#fff;border:none;border-radius:11px;padding:.75rem;font-size:.92rem;font-weight:600;cursor:pointer}
+.ep-close{background:var(--bg);color:var(--mut);border:1px solid var(--brd);border-radius:11px;padding:.75rem 1rem;font-size:.92rem;cursor:pointer}
+
+/* ADD CUSTOM POPUP */
+.pop h3{font-size:1rem;font-weight:700;margin-bottom:.85rem}
+.pf{margin-bottom:.7rem}
+.pf label{display:block;font-size:.73rem;color:var(--mut);margin-bottom:.25rem;font-weight:500}
+.pf input,.pf select{width:100%;border:1px solid var(--brd);border-radius:9px;padding:.55rem .75rem;font-size:.9rem;color:var(--txt);background:var(--bg);outline:none;font-family:inherit}
+.pf input:focus,.pf select:focus{border-color:var(--acc);background:#fff}
+.pr2{display:flex;gap:.6rem}.pr2 .pf{flex:1}
+.pacts{display:flex;gap:.6rem;margin-top:.9rem}
+.pbtn{flex:1;background:var(--acc);color:#fff;border:none;border-radius:11px;padding:.75rem;font-size:.92rem;font-weight:600;cursor:pointer}
+.pcan{background:var(--bg);color:var(--mut);border:1px solid var(--brd);border-radius:11px;padding:.75rem 1rem;font-size:.92rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- MAIN -->
+<div id="vMain">
+<div class="topbar">
+  <a href="index.html" class="back">←</a>
+  <h1>📊 Инвентаризация</h1>
+  <button class="tbtn" onclick="exportAll()">📋 Все</button>
+</div>
+<div class="date-row">
+  <div><label>Дата</label><input type="date" id="mainDate" onchange="renderMain()"></div>
+  <span class="dlbl" id="dayLbl"></span>
+</div>
+<div class="sgrid" id="sgrid"></div>
+</div>
+
+<!-- FORM -->
+<div id="vForm">
+<div class="ftop">
+  <button class="bback" onclick="closeStation()">←</button>
+  <span class="ft" id="fTitle"></span>
+  <button class="bsave" onclick="saveClose()">Сохранить</button>
+</div>
+<div class="fbody">
+  <div class="cook-card">
+    <div class="fhf"><label>Повар</label><input type="text" id="fCook" placeholder="Имя повара..." oninput="dirty=true"></div>
+    <div class="fhf"><label>Дата</label><input type="date" id="fDate" readonly style="cursor:default"></div>
+  </div>
+  <div id="fContent"></div>
+  <button class="bexp" onclick="exportCur()">📊 Экспорт / Печать</button>
+  <button class="bsend" id="bSend" onclick="sendStation()">📤 Отправить в базу</button>
+</div>
+</div>
+
+<!-- ENTRY POPUP: add qty to a specific item -->
+<div class="pop-ov" id="epPop" onclick="epBg(event)">
+  <div class="pop">
+    <div class="pop-hdl"></div>
+    <div class="ep-title" id="epTitle">—</div>
+    <div class="ep-log" id="epLog"></div>
+    <!-- CALCULATOR SECTION -->
+    <div class="ep-calc" id="epCalc">
+      <div class="ep-calc-row">
+        <div class="ep-f"><label>Кол-во (шт)</label><input type="number" id="calcQty" min="0" step="1" placeholder="0" oninput="updateCalc()"></div>
+        <div class="ep-f"><label>Вес/шт</label><input type="number" id="calcWeight" min="0" step="0.001" placeholder="0" oninput="updateCalc()"></div>
+        <div class="ep-f" style="max-width:90px"><label>Ед.</label>
+          <select id="calcUnit" onchange="updateCalc()">
+            <option value="кг">кг</option>
+            <option value="г">г</option>
+            <option value="л">л</option>
+            <option value="мл">мл</option>
+          </select>
+        </div>
+      </div>
+      <div class="ep-calc-result" id="calcResult">Введите данные для расчёта</div>
+    </div>
+    <div class="ep-row">
+      <div class="ep-f"><label>Количество</label><input type="number" id="epQty" min="0" step="0.001" placeholder="0"></div>
+      <div class="ep-f" style="max-width:110px"><label>Единица</label>
+        <select id="epUnit"><option>кг</option><option>г</option><option>л</option><option>мл</option><option>шт</option><option>порции</option><option>уп</option></select>
+      </div>
+    </div>
+    <div class="ep-acts">
+      <button class="ep-close" onclick="closeEP()">Закрыть</button>
+      <button class="ep-save" onclick="confirmEP()">✓ Записать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CUSTOM POPUP -->
+<div class="pop-ov" id="addPop" onclick="addBg(event)">
+  <div class="pop">
+    <div class="pop-hdl"></div>
+    <h3>➕ Добавить позицию</h3>
+    <div class="pf"><label>Наименование</label><input type="text" id="popName" placeholder="Название продукта..." onkeydown="if(event.key==='Enter')confirmAdd()"></div>
+    <div class="pacts">
+      <button class="pcan" onclick="closeAdd()">Отмена</button>
+      <button class="pbtn" onclick="confirmAdd()">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATION DATA (same as before - keeping it short for brevity)
+// ══════════════════════════════════════
+const ST=[
+ {id:'k',t:'Кондитерка',ic:'🍰',c:'#7b1fa2',
+  tv:['Агар-агар','Белый шоколад','Ванильные стручки','Вафельная крошка','Глюкоза (декстроза)','Талқан','Диоксид титана','Желатин','Изюм темный','Изомальт','Ириска балкаймак','Катык','Кобылье молоко','Краситель желтый/красный','Кукурузный крахмал','Курага светлая','Курага темная','Лимоны ташкентские','Малдон соль','Маскарпоне','Масло какао','Мед горный','Мед цветочный','Миндальная мука п/ф','Молоко 3,2%','Молочный шоколад','Мука В/С','Пекан','Пектин','Разрыхлитель','Растительное масло','Сахар','Сахарная пудра','Сливки','Сливочное масло','Сметана 20%','Сода','Сок яблочный','Соль морская','Сухое молоко','Темный шоколад','Облепиха С/М','Брусника С/М','Смородина С/М','Халва','Хурма сушеный','Шиповник плоды сухие','Яблочный уксус','Яйца'],
+  pf:[
+   {t:'Алма десерт',i:['Алма п/ф','Алма сборка п/ф','Начинка алма п/ф','Заварной крем база п/ф','Заварной крем с маскарпоне п/ф','Алма ганаш п/ф','Алма ветка п/ф','Алма велюр п/ф','Алма велюр желтый п/ф','Штройзель п/ф','Мини алма без велюра п/ф','Мини алма п/ф']},
+   {t:'Түнгі дала',i:['Заварной крем сметанный п/ф','Джем из черноплодной рябины п/ф','Сметанное мороженное п/ф','Черничный соус п/ф','Шоколадный бисквит п/ф','Сметанная пена п/ф']},
+   {t:'Тулпар десерт',i:['Крем с халвой п/ф','Крем с халвой со сливками п/ф','Цитрусовый гель п/ф','Мороженое с кобльем молоком п/ф','Соус с ирисками шубат п/ф','Шиповник в сиропе п/ф','Крем с хурмой п/ф','Твиль с тары п/ф (тесто)','Твиль с тары п/ф (готовый)','Козинак п/ф','Твиль п/ф сырой']},
+   {t:'Сладкий стол',i:['Ириска конфеты п/ф ШТ','Конфеты асык п/ф ШТ','Конфеты узор п/ф ШТ','Начинка асык конфет п/ф','Начинка узор конфет п/ф','Крем чиз п/ф','Курага маринованная п/ф','Хворост обжаренный п/ф','Хворост тесто п/ф','Ириска велюр п/ф']},
+   {t:'Медовик десерт',i:['Медовик п/ф','Грецкое мороженное п/ф','Сметанный крем п/ф','Сено сироп п/ф','Фалернум п/ф','Смородина курд п/ф','Пекан глазированный п/ф','Медовый корж п/ф','Коджи мед п/ф']},
+   {t:'Чак чак десерт',i:['Чак чак сборка п/ф','Грецкий орех обжаренный п/ф','Чак чак тесто п/ф']},
+   {t:'Балкаймак',i:['Балкаймак п/ф','Шубат сорбет п/ф']},
+   {t:'Дополнительные',i:['Иримшик мороженное п/ф','Облепиха мороженное п/ф','Брусника мороженное п/ф','Катык мороженное п/ф']}]},
+ {id:'mc',t:'Мучной цех',ic:'🥐',c:'#e65100',
+  tv:['Дрожжи','Зира дешевая','Кефир','Кориандр','Кумин','Кунжут белый','Манитоба мука','Мука В/С','Цельнозерновая мука','Оливковое масло','Растительное масло','Сливочное масло Президент','Сметана домашняя','Соль','Черный перец молотый'],
+  pf:[{t:'Полуфабрикаты',i:['Батат запеченый п/ф','Бауырсак тесто п/ф','Беш тесто п/ф','Желток п/ф','Конина начинка на самсу п/ф','Лапша тонкая п/ф','Манты п/ф ШТ','Манты/Тушпара тесто п/ф','Самса тыква батат п/ф ШТ','Самса шпинат п/ф ШТ','Самса конина п/ф ШТ','Самса тесто п/ф','Тушпара начинка п/ф','Джусай/Шпинат начинка п/ф','Тушпара п/ф ШТ','Тушпара тесто п/ф','Тыква резанный п/ф','Шпинат/Щавель/Папоротник начинка п/ф']}]},
+ {id:'gs',t:'Горячий (Сервис)',ic:'🔥',c:'#c62828',
+  tv:['Сливочное масло','Морская соль','Сливки','Сахар','Фета','Растительное масло'],
+  pf:[
+   {t:'Бешбармак',i:['Беш тесто п/ф','Беш компания ягненок п/ф','Грудинка копченая п/ф','Жая бульон п/ф','Жая нарезанный п/ф','Жирконина п/ф','Казы классика п/ф','Казы на кости п/ф','Костный бульон п/ф','Лук туздык п/ф']},
+   {t:'Сорпа',i:['Голень п/ф','Начинка шорпа п/ф','Томатный сальса п/ф','Петрушка п/ф','Шорпа бульон п/ф']},
+   {t:'Томленая грудинка',i:['Начинка томленая грудинка п/ф','Финик сироп п/ф','Финиковый демик п/ф']},
+   {t:'Щеки конины',i:['Баклажан пюре п/ф','Грибное рагу п/ф']},
+   {t:'Стейк конины',i:['Тары отварной п/ф','Полу-горький перец маринованный п/ф','Демик перечный п/ф','Грибная начинка п/ф']},
+   {t:'Форель',i:['Вешенки п/ф','Нут отварной п/ф','Чесночное масло п/ф']},
+   {t:'Хошан Манты',i:['Тыквенный мисо соус п/ф','Хошан манты п/ф']},
+   {t:'Тушпара',i:['Тушпара п/ф','Куриный бульон п/ф']},
+   {t:'Судак',i:['Джусай п/ф','Бер блан соус п/ф','Картошка беби запеченая п/ф','Черри бланш п/ф']},
+   {t:'Мозговой',i:['Демик п/ф','Лазджан п/ф','Лазджан демик п/ф']},
+   {t:'Асип сорпа',i:['Асип отварной п/ф','Уйгурская база п/ф','Лакто пшеница п/ф','Фасоль стручковая бланш п/ф']},
+   {t:'Дополнительно',i:['Лапша тонкая п/ф','Баранина голова соус п/ф']}]},
+ {id:'tn',t:'Тандыр',ic:'🫓',c:'#4e342e',
+  tv:['Сливочное масло','Растительное масло','Мука в/с'],
+  pf:[{t:'Полуфабрикаты',i:['Лепешка п/ф','Лапша п/ф','Кунжутный кранч п/ф','Топленый масло п/ф']}]},
+ {id:'pm',t:'Плюс мясо',ic:'🥩',c:'#b71c1c',
+  tv:['Вырезка говядина','Вырезка конина','Грудинка баран','Голень ягненка','Мякоть баранины','Баранина голова ШТ','Шея баран','Жая','Казы классика','Конина жир','Конина кишки','Конина коробка','Конина щеки','Цыпленок тушка','Окорочка','Перепелка','Судак','Форель ШТ'],
+  pf:[
+   {t:'Конина',i:['Жая чищ п/ф','Жая маринованная п/ф','Жая отварная п/ф','Жая отварная резанная п/ф','Жая шашлык п/ф','Конина коробка чищ п/ф','Конина коробка маринованная п/ф','Конина коробка отварная п/ф','Конина коробка отварная резанная п/ф','Конина антрикот тар-тар п/ф','Самса конина начинка п/ф','Конина жир топленый п/ф','Казы на кости п/ф','Конина жир маринованный п/ф','Казы отварной п/ф','Казы резанный п/ф','Конина щеки чищ п/ф','Конина щеки отварной п/ф','Конина щеки порц п/ф','Вырезка конины чищ п/ф']},
+   {t:'Баранина',i:['Бас бараний отварной п/ф','Грудинка баранины чищ п/ф','Грудинка баранины маринованная п/ф','Грудинка баранины отварная п/ф','Томленая грудинка порц п/ф','Голень ягненка сырой чищ п/ф','Голень ягненка на беш компания сырой п/ф','Голень ягненка отв порц п/ф','Беш компания отв п/ф','Мякоть баранины чищ п/ф','Кебаб п/ф']},
+   {t:'Говядина',i:['Антрикот дефрост п/ф','Шея говядина мраморная дефрост п/ф','Ребра говядины мраморная дефрост п/ф','Вырезка чищ п/ф','Шашлык говядины п/ф','Мозговые кости маринованные п/ф','Мозговые кости запеченые п/ф']},
+   {t:'Рыба',i:['Судак чищ п/ф','Судак чищ маринованный стейк п/ф','Форель чищ п/ф','Форель маринованная п/ф']},
+   {t:'Цыпленок',i:['Цыпленок чищ п/ф','Цыпленок маринованный п/ф','Перепелка чищ п/ф']}]},
+ {id:'gz',t:'Горячий (ЗЦ)',ic:'🍲',c:'#d32f2f',
+  tv:['Грузди'],
+  pf:[
+   {t:'Бешбармак',i:['Беш тесто п/ф','Беш компания ягненок п/ф','Грудинка копченая п/ф','Жая бульон п/ф','Жая нарезанный п/ф','Жирконина п/ф','Казы классика п/ф','Казы на кости п/ф','Костный бульон п/ф','Лук туздык п/ф']},
+   {t:'Сорпа',i:['Голень п/ф','Начинка шорпа п/ф','Томатный сальса п/ф','Петрушка п/ф','Шорпа бульон п/ф']},
+   {t:'Томленая грудинка',i:['Начинка томленая грудинка п/ф','Финик сироп п/ф','Финиковый демик п/ф']},
+   {t:'Щеки конины',i:['Баклажан пюре п/ф','Грибное рагу п/ф']},
+   {t:'Стейк конины',i:['Тары отварной п/ф','Полу-горький перец маринованный п/ф','Демик перечный п/ф','Грибная начинка п/ф']},
+   {t:'Форель',i:['Вешенки п/ф','Нут отварной п/ф','Чесночное масло п/ф']},
+   {t:'Хошан Манты',i:['Тыквенный мисо соус п/ф','Хошан манты п/ф']},
+   {t:'Тушпара',i:['Тушпара п/ф','Куриный бульон п/ф']},
+   {t:'Судак',i:['Джусай п/ф','Бер блан соус п/ф','Беби картофель чищ п/ф','Картошка беби запеченая п/ф','Черри бланш п/ф']},
+   {t:'Мозговой',i:['Демик п/ф','Лазджан п/ф','Лазджан демик п/ф']},
+   {t:'Асип сорпа',i:['Асип отварной п/ф','Уйгурская база п/ф','Лакто пшеница п/ф','Фасоль стручковая бланш п/ф']},
+   {t:'Дополнительно',i:['Баранина голова соус п/ф']}]},
+ {id:'pl',t:'Плюс',ic:'🥦',c:'#2e7d32',
+  tv:['Апельсин','Баклажан','Батат','Гранат','Грибы вешанки','Грибы шампиньоны','Груша','Джусай','Имбирь корень','Капуста б/к','Картофель беби','Кинза','Красный перец болгарский','Лайм','Лимон','Лук зеленый','Морковь желтая','Морковь красная','Мята','Петрушка','Полу горький красный перец','Помидоры сладкие розовые','Размарин','Редька','Романо','Свекла','Стебель сельдерея','Тимьян','Тыква ромашка','Фасоль стручковая','Черри желтые','Черри красные','Чеснок','Чеснок чищенный','Чесночные стрелки','Чили красный','Шпинат мини','Яблоки зеленые (Грин смит)'],
+  pf:[
+   {t:'Полуфабрикаты',i:['Верблюжатина сушеный п/ф','Коджи масло п/ф','Коджи мед п/ф','Коджи паста п/ф','Конина вяленная товар','Конина вяленная усушка п/ф','Лакто томаты п/ф','Маринованный имбирь','Мисо паста п/ф','Фета ферментированная п/ф','Черный чеснок п/ф','Чесночная паста п/ф']},
+   {t:'Молочка / Бакалея',i:['Сок яблочный','Брынза','Греческий йогурт','Кефир','Маскарпоне','Молоко Ая 2,5%','Молоко Лактель 3,2%','Моцарелла','Сливки 33%','Сливочное масло Президент','Сливочное масло домашнее','Сметана Аяла 25%','Сметана домашняя','Сметана Киргиз 20%','Сулугунья копченая','Фета','Финики','Хлеб','Яйца (шт)']}]},
+ {id:'hp',t:'Хоспер',ic:'🍖',c:'#bf360c',
+  tv:['Форель п/ф ШТ','Цыпленок мар п/ф','Шашлык говяжий п/ф','Шашлык жая п/ф','Люля кебаб п/ф','Картофель с сыром п/ф ШТ','Антрекот п/ф','Щеки конины п/ф','Грудинка ягненка п/ф','Батат п/ф','Мозговые кости запеченые п/ф','Судак п/ф','Плов заготовка (желтая морковь)','Плов заготовка (красная морковь)','Плов заготовка (лук)','Конина стейк п/ф'],
+  pf:[]},
+ {id:'sk',t:'Сухой склад',ic:'📦',c:'#4e342e',
+  tv:[],
+  pf:[
+   {t:'Орехи и сухофрукты',i:['Арахис','Грецкий орех','Изюм черный','Изюм коричневый','Клюква суш','Кунжут белый','Кунжут черный','Курага оранжевая','Курага темная','Микс семечек п/ф','Миндаль','Пекан','Семена льна','Семена подсолнуха','Тыквенные семечки']},
+   {t:'Соль / Мука / Крахмал',i:['Водоросли Комбу','Грибы шитаки','Дрожжи','Крахмал картофельный','Крахмал кукурузный','Сода','Соль Крупная арал','Соль Малдон','Соль Мелкая','Соль Нитритная','Тростниковый сахар','Щепа','Мука В/С','Мука Ц/З','Мука Манитоба','Сахар']},
+   {t:'Специи',i:['Анис/Бадьян','Гвоздика','Душистый перец','Зира дешевая','Зира дорогая','Кориандр зерно','Корица палочки','Красный перец острый','Лавровый лист','Лапиза','Можевельник сушеный Арча','Облепиха суш','Паприка','Паприка копченая','Перец черный горошек','Семена горчицы','Специи для шашлыка','Сумах','Сычуанский перец','Хлопья чили']},
+   {t:'Крупы',i:['Копченый курт','Нут','Пшеница','Рис Лазер','Тары','Перловка','Гречка','Макароны','Маш','Рис Баракат','Геркулес','Спагетти','Манная каша','Чечевица','Яичная лапша']},
+   {t:'Овощи',i:['Лук репчатый','Картофель крупный']},
+   {t:'Уксусы / Консервы / Масло',i:['Баварская горчица','Гранатовый сок','Зигир масло','Инжир сухой','Кленовый сироп','Красный винный уксус','Кукурузка консервированная','Масло оливковое','Масло растительное','Ана бала масло','Наршараб','Опята маринованные','Панировочные сухари','Паста кочудян','Соевый соус','Томатная паста','Томаты С/С','Уксус Мирин','Уксус Мицукан','Уксус пищевой 70%','Уксус яблочный','Финиковый соус','Хлопковое масло','Ширирача']},
+   {t:'Кондитерские',i:['Агар-агар','Вафельная крошка','Глюкоза декстроза','Глюкоза сироп','Диоксид титана','Желатин','Инулин','Ксантан','Лимонная кислота','Масло какао','Мальтодекстрин','Мед горный','Мед цветочный','Миндальная мука','Патока','Разрыхлитель','Сахарная пудра','Сухое молоко','Тримолин','Фундук чищ','Шоколад белый','Шоколад молочный','Шоколад темный','Шиповник плоды','Липовый мед','Пектин','Сироп финиковый']}]},
+ {id:'vs',t:'Вок сервис',ic:'🥢',c:'#0277bd',
+  tv:['Бадьян хаджо','Зигир','Зира дорогая','Изюм коричневый','Мицукан','Растительное масло','Сливочное масло','Соевый соус','Соль','Сахар','Кориандр молотый','Хлопковое масло','Перец черный горошек'],
+  pf:[
+   {t:'Говядина',i:['Говядина маринованная п/ф','Начинка на лапшу говядину п/ф','Имбирный фреш п/ф','Томатный соус на лапшу п/ф']},
+   {t:'Конина',i:['Конина маринованная п/ф','Соус на конину п/ф','Баклажаны маринованные п/ф']},
+   {t:'Перепелка',i:['Перепелка маринованная п/ф','Начинка на перепелку п/ф','Соус на перепелку п/ф','Сельдерей п/ф','Чеснок запеченый п/ф']},
+   {t:'Общий',i:['Перец запеченный п/ф','Картошка с сыром п/ф','Фасоль отварной п/ф','Чесночные стрелки маринованный п/ф','Чесночный соус п/ф','Шитаки маринованный п/ф','Перец чили маринованный п/ф']}]},
+ {id:'cz',t:'Холодный (ЗЦ)',ic:'❄️',c:'#00695c',
+  tv:['Томаты в собственном соку','Мицукан','Соевый соус','Белый иримшик','Йогурт греческий'],
+  pf:[{t:'Полуфабрикаты',i:['Айоли п/ф','Баклажан маринованный п/ф','Белый лук маринованный п/ф','Белый лук п/ф','Вяленная конина п/ф','Гарум п/ф','Горчица маринованная п/ф','Джусай маринованный п/ф','Запеченый перец не чищенный п/ф','Запеченый перец чищенный п/ф','Зеленая сальса п/ф','Йогурт с травами п/ф','Кинза чищ п/ф','Кошу п/ф','Красный лук п/ф','Курага сироп п/ф','Лакто карамель п/ф','Лечо п/ф','Лимонный фреш п/ф','Пахта соус п/ф','Полугорький перец запеченый п/ф','Перец запеченый п/ф','Перечная сальса п/ф','Пшеница отварная п/ф','Пшеница соус п/ф','Романо чищ п/ф','Ромеско п/ф','Сено сироп п/ф','Сцежанный йогурт п/ф','Томатная сальса п/ф','Фета ферментированная п/ф','Черри маринованные п/ф','Чеснок запеченый п/ф','Чили масло п/ф','Урюк сироп п/ф','Шпинат чищ п/ф','Полу-горький перец маринованный п/ф','Тыква запеченная п/ф','Хумус из нута п/ф','Инжир маринованный п/ф','Зеленое масло п/ф','Арахисовый кранч п/ф','Цедра апельсина','Свекольный фреш п/ф']}]},
+ {id:'rz',t:'Раздача',ic:'🍽️',c:'#6a1b9a',
+  tv:[],
+  pf:[{t:'Полуфабрикаты',i:['Коричневый изюм','Тыквенные семечки','Малдон соль','Пюре чернослив п/ф','Балкаймак п/ф','Зеленая сальса п/ф','Йогурт с зеленью п/ф','Сметана','Белый мар лук п/ф','Красный мар лук п/ф','Ромеско п/ф','Томатная сальса п/ф','Горчица маринованная п/ф','Заветки луковые п/ф','Чесночное масло п/ф','Копченый йогурт п/ф','Сцежанный йогурт п/ф','Маринованный джусай п/ф','Лимон п/ф','Джусай чищ п/ф','Коджи масло п/ф','Чили масло п/ф','Кунжутный кранч п/ф','Семена тыква жарен п/ф','Соус на домалак п/ф','Чимичури соус п/ф','Катык','Сибулет','Вяленный верблюд','Соус ювелир','Десерт ювелир','Тыквенный соус п/ф','Гримолатте п/ф']}]},
+ {id:'cs',t:'Холодный (Сервис)',ic:'🥗',c:'#00838f',
+  tv:['Белый иримшик','Гранат товар','Греческий йогурт','Джусай товар','Катык','Оливковое масло','Паприка','Помидоры сладкие розовые','Пшеница декор','Сахарная пудра','Сметана аяла 25%','Сметана киргиз 20%','Соль морская','Тары','Черный перец','Черри желтые','Черри красные','Бессмертник'],
+  pf:[{t:'Полуфабрикаты',i:['Айоли п/ф','Арахисовый кранч п/ф','Баклажан маринованный п/ф','Баклажан соус п/ф','Белый лук п/ф','Вяленная конина п/ф','Гарум п/ф','Горчица маринованная п/ф','Гранат п/ф','Джусай маринованный п/ф','Джусай п/ф','Джусай резанный п/ф','Желток ферментированный п/ф','Заветки п/ф','Запеченый перец п/ф','Зеленое масло п/ф','Зеленый лук','Инжир маринованный п/ф','Кинза п/ф','Кошу п/ф','Красный лук п/ф','Тыква сироп п/ф','Лакто карамель п/ф','Лечо п/ф','Лимон резанный п/ф','Микс (яблоко,редька,фасоль) п/ф','Микс семечек','Пахта соус п/ф','Перечная сальса п/ф','Помидоры сладкие розовые','Посыпка конина п/ф','Пшеница отварная п/ф','Пшеница соус п/ф','Редька п/ф','Романо п/ф','Ромеско п/ф','Самса грибы п/ф','Самса батат п/ф','Самса конина п/ф','Сено сироп п/ф','Сибулет п/ф','Сибулет резанный п/ф','Сцежанный йогурт п/ф','Тар-тар конина п/ф','Томатная сальса п/ф','Тыква запеченная п/ф','Урюк сироп п/ф','Фасоль бланш п/ф','Фета ферментированный п/ф','Хумус из нута п/ф','Чак-чак п/ф','Черри желтые','Черри красные','Черри маринованные п/ф','Чеснок запеченый п/ф','Чили масло п/ф','Шпинат п/ф','Яблоко п/ф']}]},
+ {id:'hz',t:'Хоспер (ЗЦ)',ic:'🍗',c:'#e65100',
+  tv:['Антрикот п/ф','Батат п/ф','Картофель с сыром п/ф ШТ','Кебаб п/ф','Мозговые кости п/ф','Судак п/ф','Томленая грудинка п/ф','Форель маринованная п/ф ШТ','Цыпленок мар п/ф','Шашлык говядина п/ф','Шашлык язык п/ф','Печень шашлык п/ф','Щеки коня п/ф','Медальоны вырезка конины п/ф'],
+  pf:[]},
+ {id:'mn',t:'Минус',ic:'⚖️',c:'#37474f',
+  tv:['Баранина жир пленка','Баранина кости','Говядина вырезка','Говядина кости','Говядина ребра мраморный','Говядина шея мраморный','Горб верблюда','Жир верблюжий','Жир конский','Жир пленка баран','Задок баранина','Кишки','Конина вырезка','Конина кости','Курица алель тушка','Лопатка баранина','Мозговые кости','Окорочка','Спинной отруб мраморный','Шея баранины'],
+  pf:[{t:'Полуфабрикаты',i:['Баранина задок мякоть п/ф','Беш компания ягненок п/ф','Вырезка говядина обрезь чищ п/ф','Вырезка конь обрезки п/ф','Голень мякоть сырой чищ п/ф','Демик п/ф','Домалак п/ф','Жая конь обрезки п/ф','Жая отварная обрезь п/ф','Жая отварная п/ф','Жая тар-тар п/ф','Жир топленый п/ф','Казы готовый п/ф','Конина антрекот коробка п/ф','Конина вырезка п/ф','Копченая грудинка обрезь п/ф','Коробка конь обрезки п/ф','Лопатка баранины п/ф','Мозговой брак п/ф','Нут отварной п/ф','Перепелка маринованная п/ф','Перепелка чищ п/ф','Печень обрезь п/ф','Судак обрезь п/ф','Судак п/ф','Томленая грудинка п/ф','Язык отварной чищ п/ф','Жая обрезки','Конина коробки (обрезки)','Голова барана','Цыпленок на хоспер (очищ)','Кишки конь','Тары отв','Перловка отв','Пшеница отв','Тыква гот','Ребра кальби','Антрекот жир остаток','Шейный отруб','Баранина мякоть (задок)','Конина обрезки на гарум','Телятина мякоть (айран шорпа)','Конина коробка','Говядина вырезка обрезь','Ягоды с/м','Брусника с/м','Грибы белые с/м','Иримшик темный','Клюква красная с/м','Облепиха с/м','Смородина с/м','Шпинат с/м']}]}
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const DKEY='auyl_inv_v3';
+let curDate='', curSt=null, curData={};
+let dirty=false; // unsaved entries in the open form?
+let NMAP=[]; // maps onclick-index -> {type:'fixed',name} | {type:'custom',ci}
+let epRef=null; // current entry popup reference
+
+function all(){try{return JSON.parse(localStorage.getItem(DKEY))||{};}catch{return{};}}
+function saveAll(d){try{localStorage.setItem(DKEY,JSON.stringify(d));}catch{alert('Хранилище заполнено');}}
+function getSD(date,id){const a=all();return(a[date]&&a[date][id])||{cook:'',items:{},custom:[]};}
+function setSD(date,id,d){const a=all();if(!a[date])a[date]={};a[date][id]=d;saveAll(a);}
+
+// Get entries array for a fixed item
+function getE(name){
+  const v=curData.items[name];
+  if(!v)return[];
+  if(Array.isArray(v))return v;
+  return v?[{q:String(v),u:'кг',raw:null}]:[];
+}
+
+// Get total for fixed item - ONLY for kg units
+function getTotalKg(entries){
+  return entries.reduce((s,e)=>{
+    // Only sum entries that are in kg (or have raw data that converts to kg)
+    const unit = e.u || 'кг';
+    // If it has raw data, it's already converted to kg
+    if(e.raw && e.raw.qty && e.raw.weight) {
+      return s + (parseFloat(e.q) || 0);
+    }
+    // Only sum if unit is kg or g/ml (but g/ml should have raw data)
+    if(unit === 'кг' || unit === 'г' || unit === 'л' || unit === 'мл') {
+      // For direct kg entries
+      if(unit === 'кг') return s + (parseFloat(e.q) || 0);
+      // For g/ml entries without raw data - treat as kg (user entered kg value)
+      return s + (parseFloat(e.q) || 0);
+    }
+    return s;
+  }, 0);
+}
+
+// Get total pieces - only for 'шт' unit entries
+function getTotalPcs(entries){
+  return entries.reduce((s,e)=>{
+    if(e.u === 'шт' || e.u === 'порции' || e.u === 'уп') {
+      return s + (parseFloat(e.q) || 0);
+    }
+    return s;
+  }, 0);
+}
+
+// Count filled items
+function filledCount(sd){
+  let n=0;
+  Object.values(sd.items||{}).forEach(v=>{
+    if(Array.isArray(v)&&v.length)n++;
+    else if(v&&v!='')n++;
+  });
+  (sd.custom||[]).forEach(c=>{if(c.entries&&c.entries.length)n++;});
+  return n;
+}
+
+// ══════════════════════════════════════
+// CALCULATOR
+// ══════════════════════════════════════
+function updateCalc(){
+  const qty = parseFloat(document.getElementById('calcQty').value) || 0;
+  const weight = parseFloat(document.getElementById('calcWeight').value) || 0;
+  const unit = document.getElementById('calcUnit').value;
+  const resultEl = document.getElementById('calcResult');
+  
+  if(qty <= 0 || weight <= 0){
+    resultEl.textContent = 'Введите количество и вес для расчёта';
+    resultEl.style.color = 'var(--mut)';
+    return;
+  }
+  
+  // Convert to kg
+  let totalKg = 0;
+  if(unit === 'г'){
+    totalKg = (qty * weight) / 1000;
+  } else if(unit === 'мл'){
+    totalKg = (qty * weight) / 1000;
+  } else {
+    totalKg = qty * weight;
+  }
+  
+  const display = totalKg < 0.01 ? totalKg.toFixed(4) : totalKg.toFixed(3);
+  // Show the calculation in a readable format
+  resultEl.innerHTML = `📊 <strong>${qty}</strong> шт × <strong>${weight}</strong> ${unit} = <strong>${display}</strong> кг`;
+  resultEl.style.color = 'var(--acc)';
+  
+  // Auto-fill the main qty field with the calculated result
+  document.getElementById('epQty').value = display;
+  document.getElementById('epUnit').value = 'кг';
+}
+
+// ══════════════════════════════════════
+// MAIN VIEW
+// ══════════════════════════════════════
+function renderMain(){
+  const dt=document.getElementById('mainDate').value;
+  curDate=dt;
+  const d=new Date(dt+'T12:00:00');
+  document.getElementById('dayLbl').textContent=dt?d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'}):'';
+  document.getElementById('sgrid').innerHTML=ST.map(s=>{
+    const sd=getSD(dt,s.id);
+    const filled=filledCount(sd);
+    const pc=filled>0?s.c:'#bbb';
+    return `<div class="sc" onclick="openSt('${s.id}')" style="border-top-color:${s.c}">
+      <div class="sico">${s.ic}</div>
+      <div class="snm">${s.t}</div>
+      ${sd.cook?`<div class="smeta">👤 ${x(sd.cook)}</div>`:''}
+      <div class="sprog" style="color:${pc}">${filled>0?`${filled} позиций записано`:'Не начато'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// FORM
+// ══════════════════════════════════════
+function openSt(id){
+  curSt=ST.find(s=>s.id===id);
+  curData=getSD(curDate,id);
+  dirty=false;
+  if(!curData.items)curData.items={};
+  if(!curData.custom)curData.custom=[];
+  document.getElementById('fTitle').textContent=`${curSt.ic} ${curSt.t}`;
+  document.getElementById('fCook').value=curData.cook||'';
+  document.getElementById('fDate').value=curDate;
+  buildForm();
+  document.getElementById('vForm').style.display='block';
+  document.getElementById('vForm').scrollTop=0;
+  document.getElementById('vMain').style.display='none';
+}
+
+function buildForm(){
+  NMAP=[];
+  let h='';
+  const multi=curSt.pf&&curSt.pf.length>1;
+  if(curSt.tv&&curSt.tv.length){
+    h+=`<div class="sec"><div class="shead" style="background:${curSt.c}"><span class="sh-t">Товар</span><span class="sh-u">кг</span></div>
+    ${curSt.tv.map(n=>frow(n,'fixed')).join('')}</div>`;
+  }
+  if(curSt.pf&&curSt.pf.length){
+    h+=`<div class="sec"><div class="shead" style="background:${curSt.c}"><span class="sh-t">Полуфабрикаты</span><span class="sh-u">кг</span></div>`;
+    curSt.pf.forEach(g=>{
+      if(multi&&g.t!=='Полуфабрикаты') h+=`<div class="sublbl">${g.t}</div>`;
+      h+=g.i.map(n=>frow(n,'fixed')).join('');
+    });
+    h+=`</div>`;
+  }
+  // Custom / Дополнительно
+  h+=`<div class="sec"><div class="shead" style="background:#546e7a">
+    <span class="sh-t">Дополнительно</span>
+    <button class="sh-add" onclick="openAdd()">+ Добавить</button>
+  </div>
+  <div id="custRows">${curData.custom.map((c,ci)=>crow(c,ci)).join('')}</div></div>`;
+  document.getElementById('fContent').innerHTML=h;
+}
+
+function rebuildForm(){
+  const sv=document.getElementById('vForm').scrollTop;
+  buildForm();
+  document.getElementById('vForm').scrollTop=sv;
+}
+
+// Fixed item row
+function frow(n, type){
+  const nmIdx=NMAP.length;
+  NMAP.push({type:'fixed', name:n});
+  const entries=getE(n);
+  let vH='';
+  if(!entries.length){
+    vH='<span class="chip-empty">—</span>';
+  } else {
+    // Show each entry
+    vH=entries.map(e => {
+      let label = `${e.q} ${e.u}`;
+      // If there's raw data (from calculator), show it
+      if(e.raw && e.raw.qty && e.raw.weight) {
+        label = `${e.raw.qty}шт×${e.raw.weight}${e.raw.unit}=${e.q}${e.u}`;
+      }
+      return `<span class="chip" title="${label}">${label}</span>`;
+    }).join('');
+    
+    // Show totals - only for kg entries
+    const totalKg = getTotalKg(entries);
+    const totalPcs = getTotalPcs(entries);
+    
+    if(totalKg > 0) {
+      const kgStr = Number.isInteger(totalKg) ? totalKg : totalKg.toFixed(3).replace(/\.?0+$/,'');
+      vH += `<span class="chip-tot">= ${kgStr} кг</span>`;
+    }
+    if(totalPcs > 0) {
+      vH += `<span class="chip-tot-pcs">= ${totalPcs} шт</span>`;
+    }
+  }
+  return `<div class="irow">
+    <span class="iname">${x(n)}</span>
+    <button class="iadd" onclick="openEP(${nmIdx})">+</button>
+    <div class="ivals">${vH}</div>
+  </div>`;
+}
+
+// Custom item row
+function crow(c, ci){
+  const nmIdx=NMAP.length;
+  NMAP.push({type:'custom', ci});
+  const entries=c.entries||[];
+  let vH='';
+  if(!entries.length){
+    vH='<span class="chip-empty">—</span>';
+  } else {
+    vH=entries.map(e => {
+      let label = `${e.q} ${e.u}`;
+      if(e.raw && e.raw.qty && e.raw.weight) {
+        label = `${e.raw.qty}шт×${e.raw.weight}${e.raw.unit}=${e.q}${e.u}`;
+      }
+      return `<span class="chip" title="${label}">${label}</span>`;
+    }).join('');
+    
+    const totalKg = getTotalKg(entries);
+    const totalPcs = getTotalPcs(entries);
+    
+    if(totalKg > 0) {
+      const kgStr = Number.isInteger(totalKg) ? totalKg : totalKg.toFixed(3).replace(/\.?0+$/,'');
+      vH += `<span class="chip-tot">= ${kgStr} кг</span>`;
+    }
+    if(totalPcs > 0) {
+      vH += `<span class="chip-tot-pcs">= ${totalPcs} шт</span>`;
+    }
+  }
+  return `<div class="irow">
+    <span class="iname" style="font-weight:500">${x(c.n||'—')}</span>
+    <button class="iadd" onclick="openEP(${nmIdx})">+</button>
+    <div class="ivals">${vH}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════
+// ENTRY POPUP
+// ══════════════════════════════════════
+function openEP(nmIdx){
+  epRef=NMAP[nmIdx];
+  const name=epRef.type==='fixed'?epRef.name:curData.custom[epRef.ci].n;
+  document.getElementById('epTitle').textContent=name;
+  document.getElementById('epQty').value='';
+  document.getElementById('epUnit').value='кг';
+  // Reset calculator
+  document.getElementById('calcQty').value='';
+  document.getElementById('calcWeight').value='';
+  document.getElementById('calcUnit').value='кг';
+  document.getElementById('calcResult').textContent='Введите данные для расчёта';
+  document.getElementById('calcResult').style.color='var(--mut)';
+  renderEPLog();
+  document.getElementById('epPop').classList.add('open');
+  setTimeout(()=>document.getElementById('calcQty').focus(),200);
+}
+
+function renderEPLog(){
+  const entries=epRef.type==='fixed'
+    ? getE(epRef.name)
+    : (curData.custom[epRef.ci].entries||[]);
+  const el=document.getElementById('epLog');
+  if(!entries.length){el.innerHTML='';return;}
+  
+  const totalKg = getTotalKg(entries);
+  const totalPcs = getTotalPcs(entries);
+  
+  let html = `<div class="ep-log-lbl">Уже записано:</div>
+    <div class="ep-chips">${entries.map((e,i)=>{
+      let label = `${e.q} ${e.u}`;
+      if(e.raw && e.raw.qty && e.raw.weight) {
+        label = `${e.raw.qty}шт×${e.raw.weight}${e.raw.unit}=${e.q}${e.u}`;
+      }
+      return `<span class="ep-chip">${label}
+        <button onclick="removeEPEntry(${i})" title="Удалить">×</button>
+      </span>`;
+    }).join('')}
+    </div>`;
+  
+  if(totalKg > 0) {
+    const kgStr = Number.isInteger(totalKg) ? totalKg : totalKg.toFixed(3).replace(/\.?0+$/,'');
+    html += `<div class="ep-tot">Итого: ${kgStr} кг</div>`;
+  }
+  if(totalPcs > 0) {
+    html += `<div class="ep-tot-pcs">Итого: ${totalPcs} шт</div>`;
+  }
+  
+  el.innerHTML = html;
+}
+
+function removeEPEntry(idx){
+  if(epRef.type==='fixed'){
+    const arr=getE(epRef.name);
+    arr.splice(idx,1);
+    curData.items[epRef.name]=arr;
+  } else {
+    if(!curData.custom[epRef.ci].entries) return;
+    curData.custom[epRef.ci].entries.splice(idx,1);
+  }
+  dirty=true;
+  renderEPLog();
+  rebuildForm();
+}
+
+function confirmEP(){
+  const q=document.getElementById('epQty').value.trim();
+  const u=document.getElementById('epUnit').value;
+  if(!q||parseFloat(q)<=0){document.getElementById('epQty').focus();return;}
+  
+  // Check if calculator was used
+  const calcQty = parseFloat(document.getElementById('calcQty').value) || 0;
+  const calcWeight = parseFloat(document.getElementById('calcWeight').value) || 0;
+  const calcUnit = document.getElementById('calcUnit').value;
+  const raw = (calcQty > 0 && calcWeight > 0) ? { qty: calcQty, weight: calcWeight, unit: calcUnit } : null;
+  
+  const entry = { q, u, raw };
+  
+  if(epRef.type==='fixed'){
+    if(!Array.isArray(curData.items[epRef.name])) curData.items[epRef.name]=[];
+    curData.items[epRef.name].push(entry);
+  } else {
+    if(!curData.custom[epRef.ci].entries) curData.custom[epRef.ci].entries=[];
+    curData.custom[epRef.ci].entries.push(entry);
+  }
+  document.getElementById('epQty').value='';
+  document.getElementById('calcQty').value='';
+  document.getElementById('calcWeight').value='';
+  document.getElementById('calcResult').textContent='Введите данные для расчёта';
+  document.getElementById('calcResult').style.color='var(--mut)';
+  dirty=true;
+  renderEPLog();
+  rebuildForm();
+  document.getElementById('calcQty').focus();
+}
+
+function closeEP(){document.getElementById('epPop').classList.remove('open');}
+function epBg(e){if(e.target===document.getElementById('epPop'))closeEP();}
+
+// ══════════════════════════════════════
+// ADD CUSTOM POPUP
+// ══════════════════════════════════════
+function openAdd(){
+  document.getElementById('popName').value='';
+  document.getElementById('addPop').classList.add('open');
+  setTimeout(()=>document.getElementById('popName').focus(),200);
+}
+function confirmAdd(){
+  const n=document.getElementById('popName').value.trim();
+  if(!n){document.getElementById('popName').focus();return;}
+  curData.custom.push({n, entries:[]});
+  dirty=true;
+  closeAdd();
+  rebuildForm();
+  // open the SAME entry popup (with calculator) for the new item
+  const ci=curData.custom.length-1;
+  const nmIdx=NMAP.findIndex(m=>m.type==='custom'&&m.ci===ci);
+  if(nmIdx>=0) openEP(nmIdx);
+}
+function closeAdd(){document.getElementById('addPop').classList.remove('open');}
+function addBg(e){if(e.target===document.getElementById('addPop'))closeAdd();}
+
+// ══════════════════════════════════════
+// SAVE / CLOSE
+// ══════════════════════════════════════
+// Save to phone cache and STAY on the page (with a confirmation)
+function saveClose(){
+  curData.cook=document.getElementById('fCook').value;
+  setSD(curDate,curSt.id,curData);
+  dirty=false;
+  toastInv('✓ Сохранено в память телефона');
+}
+function closeStation(){
+  if(dirty && !confirm('⚠️ Вы не нажали «Сохранить»!\n\nЕсли выйти сейчас, новые записи будут удалены.\n\nВыйти без сохранения?')) return;
+  dirty=false;
+  closeEP(); closeAdd();
+  document.getElementById('vForm').style.display='none';
+  document.getElementById('vMain').style.display='';
+  renderMain();
+}
+
+// ══════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════
+function exportCur(){
+  curData.cook=document.getElementById('fCook').value;
+  openExport([{s:curSt,d:curData}]);
+}
+function exportAll(){
+  if(!curDate){alert('Выберите дату');return;}
+  const pairs=ST.map(s=>({s,d:getSD(curDate,s.id)})).filter(({d})=>filledCount(d)>0||d.cook);
+  if(!pairs.length){alert('Нет данных за эту дату');return;}
+  openExport(pairs);
+}
+function openExport(pairs){
+  const ds=curDate?curDate.split('-').reverse().join('.'):'';
+  const body=pairs.map(({s,d})=>stHtml(s,d,ds)).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Инвентаризация ${ds}</title>
+<style>body{font-family:Arial,sans-serif;font-size:11px;margin:5mm}
+.pg{margin-bottom:16px;page-break-after:always}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #888;padding:3px 7px;vertical-align:top}
+.h{font-size:13px;font-weight:bold;text-align:center;color:#fff;padding:5px}
+.tv{background:#d0e8d0;font-weight:bold}.pf{background:#d0d8e8;font-weight:bold}.ex{background:#e8e8d0;font-weight:bold}
+.sub{background:#ebebeb;font-style:italic;font-size:10px;font-weight:bold}
+.qty{text-align:right;font-weight:bold;width:120px}@media print{button{display:none}.pg{page-break-after:always}}</style>
+</head><body><button onclick="window.print()" style="margin-bottom:8px;padding:5px 12px;font-size:12px;cursor:pointer">🖨 Печать</button>${body}</body></html>`);
+  w.document.close();
+}
+
+function entryStr(entries){
+  if(!entries||!entries.length) return '';
+  const parts = entries.map(e => {
+    if(e.raw && e.raw.qty && e.raw.weight) {
+      return `${e.raw.qty}шт×${e.raw.weight}${e.raw.unit}`;
+    }
+    return `${e.q}${e.u}`;
+  });
+  
+  const totalKg = getTotalKg(entries);
+  const totalPcs = getTotalPcs(entries);
+  let result = parts.join(' + ');
+  
+  if(totalKg > 0) {
+    const kgStr = Number.isInteger(totalKg) ? totalKg : totalKg.toFixed(3).replace(/\.?0+$/,'');
+    result += ` = ${kgStr}кг`;
+  }
+  if(totalPcs > 0) {
+    result += ` (${totalPcs}шт)`;
+  }
+  return result;
+}
+
+function getTotalKg(entries){
+  if(!entries) return 0;
+  return entries.reduce((s,e)=>{
+    const unit = e.u || 'кг';
+    // If it has raw data, it's already converted to kg
+    if(e.raw && e.raw.qty && e.raw.weight) {
+      return s + (parseFloat(e.q) || 0);
+    }
+    // Only sum if unit is kg (or weight units that should be in kg)
+    if(unit === 'кг' || unit === 'г' || unit === 'л' || unit === 'мл') {
+      return s + (parseFloat(e.q) || 0);
+    }
+    return s;
+  }, 0);
+}
+
+function getTotalPcs(entries){
+  if(!entries) return 0;
+  return entries.reduce((s,e)=>{
+    if(e.u === 'шт' || e.u === 'порции' || e.u === 'уп') {
+      return s + (parseFloat(e.q) || 0);
+    }
+    return s;
+  }, 0);
+}
+
+function stHtml(s,d,ds){
+  const multi=s.pf&&s.pf.length>1;
+  let r='';
+  if(s.tv&&s.tv.length){
+    r+=`<tr><th colspan="2" class="tv">Товар</th><th class="tv" style="width:130px;text-align:center">кг</th></tr>`;
+    s.tv.forEach(n=>{
+      const entries=Array.isArray(d.items&&d.items[n])?d.items[n]:[];
+      r+=`<tr><td colspan="2">${x(n)}</td><td class="qty">${entryStr(entries)}</td></tr>`;
+    });
+  }
+  if(s.pf&&s.pf.length){
+    r+=`<tr><th colspan="2" class="pf">Полуфабрикаты</th><th class="pf" style="width:130px;text-align:center">кг</th></tr>`;
+    s.pf.forEach(g=>{
+      if(multi&&g.t!=='Полуфабрикаты') r+=`<tr><td colspan="3" class="sub">${g.t}</td></tr>`;
+      g.i.forEach(n=>{
+        const entries=Array.isArray(d.items&&d.items[n])?d.items[n]:[];
+        r+=`<tr><td colspan="2">${x(n)}</td><td class="qty">${entryStr(entries)}</td></tr>`;
+      });
+    });
+  }
+  if(d.custom&&d.custom.filter(c=>c.n).length){
+    r+=`<tr><th colspan="2" class="ex">Дополнительно</th><th class="ex" style="width:130px;text-align:center">кг</th></tr>`;
+    d.custom.filter(c=>c.n).forEach(c=>{
+      r+=`<tr><td colspan="2">${x(c.n)}</td><td class="qty">${entryStr(c.entries)}</td></tr>`;
+    });
+  }
+  r+=`<tr><td style="background:#fff2cc"><b>Шеф-повар:</b></td><td colspan="2" style="background:#fff2cc"></td></tr>`;
+  return `<div class="pg"><table>
+    <tr><td colspan="3" class="h" style="background:${s.c}">${s.ic} ${s.t}</td></tr>
+    <tr><td><b>Повар:</b> ${x(d.cook||'')}</td><td colspan="2" style="text-align:right"><b>Дата:</b> ${ds}</td></tr>
+    ${r}</table></div>`;
+}
+
+function x(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════
+// SEND TO DATABASE (Google Sheet) — manual, current station only
+// ══════════════════════════════════════
+const K_URL='auyl_db_url';
+const DEFAULT_DB_URL='https://script.google.com/macros/s/AKfycbz083WqanbqliGb0yZoCWudwx35rXLKpCqOPDhRB7owPxcrvAd7TCrttN4tTp3s1Wje0A/exec';
+function dbUrl(){return localStorage.getItem(K_URL)||DEFAULT_DB_URL;}
+const UNIT_CONV={'кг':{f:'w',m:1},'г':{f:'w',m:0.001},'л':{f:'v',m:1},'мл':{f:'v',m:0.001}};
+const FAM_BASE={w:'кг',v:'л'};
+function fmtNum(n){return Number.isInteger(n)?n:parseFloat(n.toFixed(3));}
+
+// Aggregate the current station into summed rows: [Дата,Повар,Позиция,Кол-во,Ед.,Записи]
+function aggRows(data){
+  const rows=[]; const cook=data.cook||'';
+  const push=(name,entries)=>{
+    const valid=(entries||[]).filter(e=>e&&e.q!==''&&e.q!=null);
+    if(!valid.length) return;
+    const fams={};
+    const addFam=(u,val)=>{
+      const info=UNIT_CONV[u]; const fk=info?'f:'+info.f:'u:'+u;
+      if(!fams[fk]) fams[fk]={base:info?FAM_BASE[info.f]:u,baseSum:0,units:{}};
+      fams[fk].baseSum+=(val||0)*(info?info.m:1);
+      fams[fk].units[u]=(fams[fk].units[u]||0)+(val||0);
+    };
+    valid.forEach(e=>{ addFam(e.u||'',parseFloat(e.q)||0); if(e.p) addFam('шт',parseFloat(e.p)||0); });
+    const famStr=f=>{const us=Object.keys(f.units);return us.length===1?`${fmtNum(f.units[us[0]])} ${us[0]}`:`${fmtNum(f.baseSum)} ${f.base}`;};
+    const fk=Object.keys(fams); let qty,unit;
+    if(fk.length===1){const f=fams[fk[0]],us=Object.keys(f.units);if(us.length===1){qty=fmtNum(f.units[us[0]]);unit=us[0];}else{qty=fmtNum(f.baseSum);unit=f.base;}}
+    else{qty=fk.map(famStr).join(' + ');unit='';}
+    const showBreak=valid.length>1||valid.some(e=>e.raw&&e.raw.qty&&e.raw.weight);
+    const breakdown=showBreak?valid.map(e=>{if(e.raw&&e.raw.qty&&e.raw.weight)return `${fmtNum(parseFloat(e.raw.qty)||0)}шт×${fmtNum(parseFloat(e.raw.weight)||0)}${e.raw.unit||''}`;return `${fmtNum(parseFloat(e.q)||0)}${e.u||''}${e.p?` (${e.p}шт)`:''}`;}).join(' + '):'';
+    rows.push([curDate,cook,name,qty,unit,breakdown]);
+  };
+  Object.keys(data.items||{}).forEach(name=>{let e=data.items[name];if(!Array.isArray(e))e=e?[{q:String(e),u:'кг'}]:[];push(name,e);});
+  (data.custom||[]).forEach(c=>push(c.n||'',c.entries||[]));
+  return rows;
+}
+
+async function sendStation(){
+  if(!curSt){return;}
+  curData.cook=document.getElementById('fCook').value;
+  setSD(curDate,curSt.id,curData); // save to cache first
+  const rows=aggRows(curData);
+  if(!rows.length){toastInv('Нет данных для отправки');return;}
+  const stamp=new Date().toLocaleString('ru-RU');
+  const sender=`${curData.cook||'—'} · ${curSt.t}`;
+  const payload={device:sender,sentAt:new Date().toISOString(),sheets:{
+    [curSt.t]:{headers:['Отправлено','Отправитель','Дата','Повар','Позиция','Кол-во','Ед.','Записи'],rows:rows.map(r=>[stamp,sender,...r])}
+  }};
+  const btn=document.getElementById('bSend');
+  if(btn){btn.disabled=true;btn.textContent='Отправка…';}
+  try{
+    await fetch(dbUrl(),{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    toastInv(`✓ Отправлено в базу: ${rows.length} позиций`);
+  }catch(e){ toastInv('Ошибка сети. Проверьте интернет.'); }
+  if(btn){btn.disabled=false;btn.textContent='📤 Отправить в базу';}
+}
+
+function toastInv(msg){
+  let t=document.getElementById('invToast');
+  if(!t){t=document.createElement('div');t.id='invToast';
+    t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:#1e7e34;color:#fff;font-size:.9rem;font-weight:600;padding:.7rem 1.2rem;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.22);z-index:300;opacity:0;transition:opacity .2s,transform .2s;max-width:90vw;text-align:center';
+    document.body.appendChild(t);}
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastInv._t); toastInv._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(10px)';},2600);
+}
+
+// INIT
+const today=new Date().toISOString().slice(0,10);
+document.getElementById('mainDate').value=today;
+renderMain();
+// Warn before refresh / closing tab / browser-back if there are unsaved entries
+window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+</script>
+<footer class="appfoot">Persolem v0.1 · Yeldar Akimkhan · eldar@chef.net</footer>
+</body>
+</html>

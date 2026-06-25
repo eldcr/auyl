@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Auyl · Сотрудники</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--acc:#9334e6;--acc2:#7c3aed;--bg:#f5f5f3;--card:#fff;--brd:#e8e8e6;--txt:#111;--mut:#999;
+          --ok:#1e8c45;--ok-bg:#e6f4ea;--warn:#b45309;--warn-bg:#fef3c7;--exp:#c5221f;--exp-bg:#fce8e6}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+
+    /* ── Shared ── */
+    .topbar{display:flex;align-items:center;gap:.7rem;padding:1.1rem 1rem .8rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--brd)}
+    .back{text-decoration:none;color:var(--acc);font-size:1.3rem}
+    .topbar h1{font-size:1.05rem;font-weight:700;flex:1}
+    .crumbs{flex:1;display:flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:700;min-width:0}
+    .crumbs a{color:var(--acc);text-decoration:none;font-weight:600}
+    .crumbs a:hover{text-decoration:underline}
+    .crumbs .csep{color:var(--mut);font-weight:400}
+    .crumbs .ccur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .icon-btn{background:none;border:1px solid var(--brd);border-radius:8px;padding:.35rem .65rem;font-size:.8rem;cursor:pointer;color:var(--mut)}
+    .fab{position:fixed;bottom:1.4rem;right:1.1rem;background:var(--acc);color:#fff;border:none;border-radius:50px;padding:.8rem 1.3rem;font-size:.9rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(147,52,230,.35);z-index:20;display:flex;align-items:center;gap:.4rem;transition:transform .12s}
+    .fab:active{transform:scale(.95)}
+    .empty{text-align:center;color:var(--mut);padding:3rem 1rem}
+    .empty .big{font-size:2.5rem;margin-bottom:.5rem}
+
+    /* ── List view ── */
+    #vList{padding-bottom:5rem}
+    .summary{display:flex;gap:.6rem;padding:.75rem 1rem .4rem;max-width:600px;margin:0 auto}
+    .sc{flex:1;background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:.65rem .85rem}
+    .sc .lb{font-size:.7rem;color:var(--mut)}
+    .sc .vl{font-size:1.1rem;font-weight:700;margin-top:.1rem}
+    .sc.warn-card{background:var(--warn-bg);border-color:#fde68a}
+    .sc.warn-card .vl{color:var(--warn)}
+    .sc.exp-card{background:var(--exp-bg);border-color:#fca5a5}
+    .sc.exp-card .vl{color:var(--exp)}
+    .slist{max-width:600px;margin:0 auto;padding:.5rem 1rem;display:flex;flex-direction:column;gap:.55rem}
+    .scard{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.9rem 1rem;display:flex;align-items:center;gap:.85rem;cursor:pointer;transition:box-shadow .12s;position:relative;overflow:hidden}
+    .scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:14px 0 0 14px;background:var(--acc)}
+    .scard:active{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0;color:#fff}
+    .sinfo{flex:1;min-width:0}
+    .sname{font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .srole{font-size:.78rem;color:var(--mut);margin-top:.1rem}
+    .sbadges{display:flex;gap:.3rem;margin-top:.35rem;flex-wrap:wrap}
+    .badge{font-size:.67rem;font-weight:600;padding:.18rem .5rem;border-radius:20px;white-space:nowrap}
+    .badge.ok{background:var(--ok-bg);color:var(--ok)}
+    .badge.warn{background:var(--warn-bg);color:var(--warn)}
+    .badge.exp{background:var(--exp-bg);color:var(--exp)}
+    .badge.none{background:#f1f5f9;color:var(--mut)}
+    .sarrow{color:#ccc;font-size:1rem;flex-shrink:0}
+
+    /* ── Profile view ── */
+    #vProfile{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:5rem}
+    .prof-topbar{display:flex;align-items:center;gap:.7rem;padding:1.1rem 1rem .8rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--brd)}
+    .prof-topbar h1{font-size:1.05rem;font-weight:700;flex:1}
+    .btn-edit{background:var(--acc);color:#fff;border:none;border-radius:10px;padding:.4rem .85rem;font-size:.85rem;font-weight:600;cursor:pointer}
+    .btn-del-sm{background:none;border:1px solid var(--brd);border-radius:10px;padding:.4rem .7rem;font-size:.82rem;cursor:pointer;color:var(--mut)}
+    .prof-body{max-width:600px;margin:0 auto;padding:.75rem 1rem}
+    .prof-hero{background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:1.4rem 1.2rem 1.1rem;margin-bottom:.7rem;display:flex;align-items:center;gap:1.1rem}
+    .prof-av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;flex-shrink:0}
+    .prof-info .pname{font-size:1.2rem;font-weight:700;letter-spacing:-.02em}
+    .prof-info .prole{font-size:.85rem;color:var(--mut);margin-top:.1rem}
+    .prof-info .pphone{font-size:.82rem;color:var(--acc);margin-top:.35rem}
+
+    /* Warning banner */
+    .warn-banner{border-radius:12px;padding:.75rem .9rem;margin-bottom:.7rem;display:none;align-items:flex-start;gap:.6rem}
+    .warn-banner.exp{background:var(--exp-bg);border:1px solid #fca5a5;display:flex}
+    .warn-banner.warn{background:var(--warn-bg);border:1px solid #fde68a;display:flex}
+    .warn-banner .wico{font-size:1.1rem;flex-shrink:0;margin-top:.05rem}
+    .warn-banner .wtxt{font-size:.8rem;line-height:1.45}
+    .warn-banner .wtxt b{font-size:.82rem}
+
+    /* Info rows */
+    .info-card{background:var(--card);border:1px solid var(--brd);border-radius:14px;margin-bottom:.7rem;overflow:hidden}
+    .info-card-head{padding:.65rem .9rem;font-size:.8rem;font-weight:700;color:var(--mut);border-bottom:1px solid var(--brd);background:#fafaf8;letter-spacing:.02em}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;border-top:1px solid var(--brd);font-size:.85rem}
+    .info-row:first-of-type{border-top:none}
+    .info-row .ilbl{color:var(--mut);font-size:.78rem}
+    .info-row .ival{font-weight:500;text-align:right}
+
+    /* Doc card */
+    .doc-item{padding:.7rem .9rem;border-top:1px solid var(--brd);display:flex;align-items:center;gap:.7rem}
+    .doc-item:first-of-type{border-top:none}
+    .doc-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .dot-ok{background:var(--ok)}
+    .dot-warn{background:#f59e0b}
+    .dot-exp{background:var(--exp)}
+    .dot-none{background:#d1d5db}
+    .doc-name{flex:1;font-size:.85rem;font-weight:500}
+    .doc-exp{font-size:.75rem;text-align:right}
+    .doc-exp .de-lbl{color:var(--mut)}
+    .doc-exp .de-date{font-weight:600}
+    .doc-exp .de-days{font-size:.7rem;margin-top:.05rem}
+    .de-days.ok{color:var(--ok)}
+    .de-days.warn{color:var(--warn)}
+    .de-days.exp{color:var(--exp)}
+    .de-days.none{color:var(--mut)}
+
+    /* ── Form view ── */
+    #vForm{display:none;position:fixed;inset:0;background:var(--bg);z-index:60;overflow-y:auto;padding-bottom:3rem}
+    .ftopbar{display:flex;align-items:center;justify-content:space-between;padding:1rem;background:var(--bg);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:10}
+    .ftopbar .ft{font-weight:700;font-size:.98rem}
+    .bclose{background:none;border:none;font-size:1.1rem;color:var(--mut);cursor:pointer;padding:.3rem .5rem}
+    .bsave{background:var(--acc);color:#fff;border:none;border-radius:10px;padding:.45rem .9rem;font-size:.88rem;font-weight:600;cursor:pointer}
+    .fbody{padding:.75rem 1rem;max-width:600px;margin:0 auto}
+
+    /* Photo upload */
+    .photo-upload{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+    .photo-circle{width:68px;height:68px;border-radius:50%;border:2px dashed var(--brd);display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg);overflow:hidden;cursor:pointer;position:relative;flex-shrink:0}
+    .photo-circle img{width:100%;height:100%;object-fit:cover}
+    .photo-circle input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .photo-hint{font-size:.78rem;color:var(--mut);line-height:1.4}
+
+    .fblock{background:var(--card);border:1px solid var(--brd);border-radius:14px;margin-bottom:.7rem;overflow:hidden}
+    .fblock-head{padding:.6rem .9rem;font-size:.78rem;font-weight:700;color:var(--mut);background:#fafaf8;border-bottom:1px solid var(--brd);letter-spacing:.02em}
+    .ffield{padding:.5rem .9rem;border-top:1px solid var(--brd)}
+    .ffield:first-of-type{border-top:none}
+    .ffield label{display:block;font-size:.72rem;color:var(--mut);margin-bottom:.22rem;font-weight:500}
+    .ffield input,.ffield select{width:100%;border:1px solid var(--brd);border-radius:9px;padding:.5rem .7rem;font-size:.88rem;color:var(--txt);background:var(--bg);outline:none;font-family:inherit}
+    .ffield input:focus,.ffield select:focus{border-color:var(--acc);background:var(--card)}
+    .frow2{display:flex;gap:.6rem}
+    .frow2 .ffield{flex:1}
+
+    /* Doc form rows */
+    .doc-frow{border-top:1px solid var(--brd);padding:.6rem .9rem;position:relative}
+    .doc-frow:first-of-type{border-top:none}
+    .doc-frow-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem}
+    .doc-frow-head span{font-size:.8rem;font-weight:600}
+    .dfdel{background:none;border:none;color:#ddd;cursor:pointer;font-size:.9rem}
+    .dfdel:hover{color:var(--exp)}
+    .frow3{display:flex;gap:.5rem}
+    .frow3 .ffield{flex:1}
+    .add-doc-btn{width:100%;background:none;border:1.5px dashed var(--brd);border-radius:10px;padding:.6rem;font-size:.83rem;color:var(--mut);cursor:pointer;margin-top:.1rem;transition:all .15s}
+    .add-doc-btn:hover{border-color:var(--acc);color:var(--acc)}
+  </style>
+</head>
+<body>
+
+<!-- ══════ LIST VIEW ══════ -->
+<div id="vList">
+  <div class="topbar">
+    <nav class="crumbs">
+      <a href="index.html">Главная</a>
+      <span class="csep">/</span>
+      <span class="ccur">👥 Сотрудники</span>
+    </nav>
+  </div>
+  <div class="summary">
+    <div class="sc"><div class="lb">Всего</div><div class="vl" id="sTot">0</div></div>
+    <div class="sc warn-card"><div class="lb">⚠️ Скоро истекает</div><div class="vl" id="sWarn">0</div></div>
+    <div class="sc exp-card"><div class="lb">🔴 Просрочено</div><div class="vl" id="sExp">0</div></div>
+  </div>
+  <div class="slist" id="staffList"></div>
+  <button class="fab" onclick="newStaff()">＋ Сотрудник</button>
+</div>
+
+<!-- ══════ PROFILE VIEW ══════ -->
+<div id="vProfile">
+  <div class="prof-topbar">
+    <button class="back" onclick="closeProfile()" style="border:none;background:none;font-size:1.3rem;cursor:pointer;color:var(--acc)">←</button>
+    <h1 id="profTitle">Профиль</h1>
+    <button class="btn-del-sm" onclick="deleteCurrentStaff()">🗑</button>
+    <button class="btn-edit" onclick="editCurrentStaff()">✏️ Изменить</button>
+  </div>
+  <div class="prof-body" id="profBody"></div>
+</div>
+
+<!-- ══════ FORM VIEW ══════ -->
+<div id="vForm">
+  <div class="ftopbar">
+    <button class="bclose" onclick="closeForm()">✕</button>
+    <span class="ft" id="formTitle">Новый сотрудник</span>
+    <button class="bsave" onclick="saveStaff()">Сохранить</button>
+  </div>
+  <div class="fbody">
+
+    <!-- Photo -->
+    <div class="photo-upload">
+      <div class="photo-circle" id="photoCircle">
+        <input type="file" accept="image/*" onchange="handlePhoto(event)">
+        <img id="photoPreview" style="display:none">
+        <span id="photoIcon">📷</span>
+      </div>
+      <div class="photo-hint">Нажмите чтобы<br>добавить фото</div>
+    </div>
+
+    <!-- Personal info -->
+    <div class="fblock">
+      <div class="fblock-head">ЛИЧНЫЕ ДАННЫЕ</div>
+      <div class="ffield"><label>ФИО</label><input type="text" id="fName" placeholder="Иванов Иван Иванович"></div>
+      <div class="frow2">
+        <div class="ffield"><label>Должность</label>
+          <select id="fRole">
+            <option>Шеф-повар</option><option>Су-шеф</option><option>Повар</option>
+            <option>Кондитер</option><option>Бармен</option><option>Официант</option>
+            <option>Посудомойщик</option><option>Уборщик</option><option>Менеджер</option>
+            <option>Другое</option>
+          </select>
+        </div>
+        <div class="ffield"><label>Телефон</label><input type="tel" id="fPhone" placeholder="+7 000 000 0000"></div>
+      </div>
+      <div class="frow2">
+        <div class="ffield"><label>ИИН</label><input type="text" id="fIin" placeholder="000000000000" maxlength="12"></div>
+        <div class="ffield"><label>Дата рождения</label><input type="date" id="fDob"></div>
+      </div>
+      <div class="ffield"><label>Дата приёма на работу</label><input type="date" id="fStart"></div>
+    </div>
+
+    <!-- Documents -->
+    <div class="fblock">
+      <div class="fblock-head">ДОКУМЕНТЫ И СЕРТИФИКАТЫ</div>
+      <div id="docFields"></div>
+      <div style="padding:.5rem .9rem">
+        <button class="add-doc-btn" onclick="addDocField()">+ Добавить документ</button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="fblock">
+      <div class="fblock-head">ЗАМЕТКИ</div>
+      <div class="ffield">
+        <textarea id="fNotes" rows="3" style="width:100%;border:1px solid var(--brd);border-radius:9px;padding:.5rem .7rem;font-size:.88rem;font-family:inherit;background:var(--bg);outline:none;resize:vertical" placeholder="Дополнительная информация..."></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const KEY='auyl_staff_v1';
+const DOC_TYPES=['Санитарная книжка','Медицинская справка','Трудовой договор','Сертификат','Удостоверение','Другое'];
+const ROLES_COLOR={'Шеф-повар':'#b71c1c','Су-шеф':'#880e4f','Повар':'#1a237e','Кондитер':'#4a148c','Бармен':'#006064','Официант':'#1b5e20','Посудомойщик':'#37474f','Уборщик':'#4e342e','Менеджер':'#e65100','Другое':'#546e7a'};
+
+let staff=[], currentId=null, editPhoto=null, docCount=0;
+
+function load(){try{staff=JSON.parse(localStorage.getItem(KEY))||[];}catch{staff=[];}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(staff));}catch{alert('Хранилище заполнено');}}
+
+// ── Doc status ──
+function daysUntil(d){
+  if(!d) return null;
+  return Math.round((new Date(d)-new Date())/(1000*60*60*24));
+}
+function docStatus(d){ // returns 'ok'|'warn'|'exp'|'none'
+  if(!d) return 'none';
+  const days=daysUntil(d);
+  if(days<0) return 'exp';
+  if(days<=30) return 'warn';
+  return 'ok';
+}
+function staffStatus(s){
+  if(!s.docs||!s.docs.length) return 'none';
+  const statuses=s.docs.map(d=>docStatus(d.expires));
+  if(statuses.includes('exp')) return 'exp';
+  if(statuses.includes('warn')) return 'warn';
+  return 'ok';
+}
+
+// ── Initials & color ──
+function initials(name){ return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function avatarColor(name){ const h=[...name].reduce((a,c)=>a+c.charCodeAt(0),0); const cols=['#6d28d9','#0369a1','#1e7e34','#b45309','#c5221f','#0f766e','#9d174d','#2563eb']; return cols[h%cols.length]; }
+
+// ── List render ──
+function renderList(){
+  const tot=staff.length;
+  const warnStaff=staff.filter(s=>staffStatus(s)==='warn').length;
+  const expStaff=staff.filter(s=>staffStatus(s)==='exp').length;
+  document.getElementById('sTot').textContent=tot;
+  document.getElementById('sWarn').textContent=warnStaff;
+  document.getElementById('sExp').textContent=expStaff;
+
+  const el=document.getElementById('staffList');
+  if(!tot){el.innerHTML=`<div class="empty"><div class="big">👥</div>Сотрудников нет.<br>Нажмите «＋ Сотрудник»</div>`;return;}
+
+  el.innerHTML=staff.map(s=>{
+    const st=staffStatus(s);
+    const color=avatarColor(s.name||'?');
+    const photoHtml=s.photo?`<img src="${s.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      :`<div class="avatar" style="background:${color}">${initials(s.name)}</div>`;
+
+    // build doc badges
+    const expDocs=(s.docs||[]).filter(d=>docStatus(d.expires)==='exp');
+    const warnDocs=(s.docs||[]).filter(d=>docStatus(d.expires)==='warn');
+    let badgeHtml='';
+    if(expDocs.length) badgeHtml+=expDocs.map(d=>`<span class="badge exp">🔴 ${esc(d.type)}</span>`).join('');
+    if(warnDocs.length) badgeHtml+=warnDocs.map(d=>`<span class="badge warn">⚠️ ${esc(d.type)}</span>`).join('');
+    if(!expDocs.length&&!warnDocs.length&&s.docs&&s.docs.length) badgeHtml=`<span class="badge ok">✅ Документы в порядке</span>`;
+    if(!s.docs||!s.docs.length) badgeHtml=`<span class="badge none">Нет документов</span>`;
+
+    return `<div class="scard" onclick="openProfile('${s.id}')">
+      ${photoHtml}
+      <div class="sinfo">
+        <div class="sname">${esc(s.name||'Без имени')}</div>
+        <div class="srole">${esc(s.role||'')}</div>
+        <div class="sbadges">${badgeHtml}</div>
+      </div>
+      <div class="sarrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Profile render ──
+function openProfile(id){
+  const s=staff.find(x=>x.id===id); if(!s) return;
+  currentId=id;
+  document.getElementById('profTitle').textContent=s.name||'Профиль';
+
+  const color=avatarColor(s.name||'?');
+  const photoHtml=s.photo?`<img src="${s.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">`
+    :`<div class="prof-av" style="background:${color}">${initials(s.name)}</div>`;
+
+  // Warning banner
+  const expDocs=(s.docs||[]).filter(d=>docStatus(d.expires)==='exp');
+  const warnDocs=(s.docs||[]).filter(d=>docStatus(d.expires)==='warn');
+  let bannerHtml='';
+  if(expDocs.length){
+    bannerHtml=`<div class="warn-banner exp"><span class="wico">🔴</span><div class="wtxt"><b>Просрочено:</b> ${expDocs.map(d=>esc(d.type)).join(', ')}<br>Обновите документы как можно скорее.</div></div>`;
+  } else if(warnDocs.length){
+    bannerHtml=`<div class="warn-banner warn"><span class="wico">⚠️</span><div class="wtxt"><b>Скоро истекает:</b> ${warnDocs.map(d=>esc(d.type)).join(', ')}</div></div>`;
+  }
+
+  // Info rows
+  function infoRow(lbl,val){return val?`<div class="info-row"><span class="ilbl">${lbl}</span><span class="ival">${esc(val)}</span></div>`:''}
+
+  // Docs
+  const docsHtml=(s.docs&&s.docs.length)?s.docs.map(d=>{
+    const st=docStatus(d.expires);
+    const days=daysUntil(d.expires);
+    let daysLbl='',dotCls='dot-none';
+    if(days!==null){
+      if(days<0){daysLbl=`Просрочено ${Math.abs(days)} дн. назад`;dotCls='dot-exp';}
+      else if(days===0){daysLbl='Истекает сегодня!';dotCls='dot-warn';}
+      else if(days<=30){daysLbl=`Ещё ${days} дн.`;dotCls='dot-warn';}
+      else{daysLbl=`Ещё ${days} дн.`;dotCls='dot-ok';}
+    }
+    return `<div class="doc-item">
+      <div class="doc-status-dot ${dotCls}"></div>
+      <div class="doc-name">${esc(d.type)}${d.number?`<div style="font-size:.72rem;color:var(--mut);margin-top:.1rem">№ ${esc(d.number)}</div>`:''}</div>
+      <div class="doc-exp">
+        ${d.expires?`<div class="de-lbl">до</div><div class="de-date">${fmtD(d.expires)}</div><div class="de-days ${st==='exp'?'exp':st==='warn'?'warn':st==='ok'?'ok':'none'}">${daysLbl}</div>`:
+          `<div class="de-days none">Без срока</div>`}
+      </div>
+    </div>`;
+  }).join(''):`<div style="padding:.8rem .9rem;font-size:.82rem;color:var(--mut)">Документы не добавлены</div>`;
+
+  document.getElementById('profBody').innerHTML=`
+    ${bannerHtml}
+    <div class="prof-hero">
+      ${photoHtml}
+      <div class="prof-info">
+        <div class="pname">${esc(s.name||'Без имени')}</div>
+        <div class="prole">${esc(s.role||'')}</div>
+        ${s.phone?`<div class="pphone">📞 ${esc(s.phone)}</div>`:''}
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-head">ЛИЧНЫЕ ДАННЫЕ</div>
+      ${infoRow('ИИН',s.iin)}
+      ${infoRow('Дата рождения',s.dob?fmtD(s.dob):'')}
+      ${infoRow('Дата приёма',s.start?fmtD(s.start):'')}
+      ${infoRow('Заметки',s.notes)}
+    </div>
+    <div class="info-card">
+      <div class="info-card-head">ДОКУМЕНТЫ И СЕРТИФИКАТЫ</div>
+      ${docsHtml}
+    </div>`;
+
+  document.getElementById('vProfile').style.display='block';
+  document.getElementById('vList').style.display='none';
+}
+function closeProfile(){
+  document.getElementById('vProfile').style.display='none';
+  document.getElementById('vList').style.display='';
+}
+
+// ── Form ──
+function newStaff(){
+  currentId=null; editPhoto=null; docCount=0;
+  document.getElementById('formTitle').textContent='Новый сотрудник';
+  ['fName','fPhone','fIin','fDob','fStart','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fRole').value='Повар';
+  document.getElementById('photoPreview').style.display='none';
+  document.getElementById('photoIcon').style.display='';
+  document.getElementById('docFields').innerHTML='';
+  // Add default docs
+  addDocField('Санитарная книжка'); addDocField('Медицинская справка');
+  openForm();
+}
+function editCurrentStaff(){
+  const s=staff.find(x=>x.id===currentId); if(!s) return;
+  editPhoto=s.photo||null; docCount=0;
+  document.getElementById('formTitle').textContent='Редактировать';
+  document.getElementById('fName').value=s.name||'';
+  document.getElementById('fRole').value=s.role||'Повар';
+  document.getElementById('fPhone').value=s.phone||'';
+  document.getElementById('fIin').value=s.iin||'';
+  document.getElementById('fDob').value=s.dob||'';
+  document.getElementById('fStart').value=s.start||'';
+  document.getElementById('fNotes').value=s.notes||'';
+  const pv=document.getElementById('photoPreview'), pi=document.getElementById('photoIcon');
+  if(s.photo){pv.src=s.photo;pv.style.display='block';pi.style.display='none';}
+  else{pv.style.display='none';pi.style.display='';}
+  document.getElementById('docFields').innerHTML='';
+  (s.docs||[]).forEach(d=>addDocField(d.type,d.number,d.issued,d.expires));
+  openForm();
+}
+function openForm(){
+  document.getElementById('vForm').style.display='block';
+  document.getElementById('vForm').scrollTop=0;
+  document.getElementById('vProfile').style.display='none';
+  document.getElementById('vList').style.display='none';
+}
+function closeForm(){
+  document.getElementById('vForm').style.display='none';
+  if(currentId){openProfile(currentId);}
+  else{document.getElementById('vList').style.display='';}
+}
+
+function addDocField(type='',number='',issued='',expires=''){
+  const idx=docCount++;
+  const typeOpts=DOC_TYPES.map(t=>`<option${t===type?' selected':''}>${t}</option>`).join('');
+  const div=document.createElement('div');
+  div.className='doc-frow'; div.id=`dfrow${idx}`;
+  div.innerHTML=`<div class="doc-frow-head">
+    <span>Документ ${idx+1}</span>
+    <button class="dfdel" onclick="document.getElementById('dfrow${idx}').remove()">✕</button>
+  </div>
+  <div class="frow2">
+    <div class="ffield"><label>Тип</label><select id="dt${idx}">${typeOpts}</select></div>
+    <div class="ffield"><label>Номер</label><input type="text" id="dn${idx}" value="${esc(number)}" placeholder="№..."></div>
+  </div>
+  <div class="frow2">
+    <div class="ffield"><label>Выдан</label><input type="date" id="di${idx}" value="${issued}"></div>
+    <div class="ffield"><label>Действует до</label><input type="date" id="de${idx}" value="${expires}"></div>
+  </div>`;
+  document.getElementById('docFields').appendChild(div);
+}
+
+function handlePhoto(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      const s=Math.min(img.width,img.height);
+      c.width=200;c.height=200;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,200,200);
+      editPhoto=c.toDataURL('image/jpeg',.8);
+      const pv=document.getElementById('photoPreview');
+      pv.src=editPhoto;pv.style.display='block';
+      document.getElementById('photoIcon').style.display='none';
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function saveStaff(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){alert('Введите имя сотрудника');return;}
+
+  // Collect docs
+  const docs=[];
+  document.querySelectorAll('[id^="dfrow"]').forEach(row=>{
+    const i=row.id.replace('dfrow','');
+    const type=document.getElementById(`dt${i}`)?.value;
+    if(!type) return;
+    docs.push({type,number:document.getElementById(`dn${i}`)?.value||'',issued:document.getElementById(`di${i}`)?.value||'',expires:document.getElementById(`de${i}`)?.value||''});
+  });
+
+  const rec={
+    id:currentId||Date.now().toString(),
+    name,role:document.getElementById('fRole').value,
+    phone:document.getElementById('fPhone').value,
+    iin:document.getElementById('fIin').value,
+    dob:document.getElementById('fDob').value,
+    start:document.getElementById('fStart').value,
+    notes:document.getElementById('fNotes').value,
+    photo:editPhoto,docs
+  };
+
+  if(currentId){const i=staff.findIndex(s=>s.id===currentId);if(i>=0)staff[i]=rec;}
+  else{staff.push(rec);currentId=rec.id;}
+  persist();
+  closeForm();
+  renderList();
+}
+
+function deleteCurrentStaff(){
+  if(!confirm('Удалить сотрудника?')) return;
+  staff=staff.filter(s=>s.id!==currentId);
+  persist(); closeProfile(); renderList(); currentId=null;
+}
+
+// ── Helpers ──
+function fmtD(d){if(!d)return'';const[y,m,dy]=d.split('-');return`${dy}.${m}.${y}`;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+load(); renderList();
+</script>
+<footer style="text-align:center;padding:1.6rem 1rem 2.2rem;color:#bbb;font-size:.72rem;letter-spacing:.02em;line-height:1.5">Persolem v0.1 · Yeldar Akimkhan · eldar@chef.net</footer>
+</body>
+</html>

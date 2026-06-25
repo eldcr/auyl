@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Auyl · Накладные</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #fa7b17;
+      --bg: #f5f5f3;
+      --card: #fff;
+      --border: #e8e8e6;
+      --text: #111;
+      --muted: #999;
+      --cor: #1e8c45;
+      --cor-bg: #e6f4ea;
+      --not: #c5221f;
+      --not-bg: #fce8e6;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 5rem; }
+
+    /* topbar */
+    .topbar { display: flex; align-items: center; gap: .75rem; padding: 1.1rem 1rem .8rem; position: sticky; top: 0; background: var(--bg); z-index: 10; border-bottom: 1px solid var(--border); }
+    .back { text-decoration: none; color: var(--accent); font-size: 1.3rem; }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; flex: 1; }
+    .crumbs { flex: 1; display: flex; align-items: center; gap: .4rem; font-size: 1rem; font-weight: 700; min-width: 0; }
+    .crumbs a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .crumbs a:hover { text-decoration: underline; }
+    .crumbs .csep { color: var(--muted); font-weight: 400; }
+    .crumbs .ccur { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .topbar-actions { display: flex; gap: .5rem; align-items: center; }
+    .icon-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: .35rem .6rem; font-size: .8rem; cursor: pointer; color: var(--muted); }
+
+    /* summary */
+    .summary { display: flex; gap: .6rem; padding: .75rem 1rem .4rem; max-width: 600px; margin: 0 auto; }
+    .s-card { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: .65rem .85rem; }
+    .s-card .lbl { font-size: .7rem; color: var(--muted); }
+    .s-card .val { font-size: 1.1rem; font-weight: 700; margin-top: .1rem; }
+    .s-card.hi { background: var(--accent); border-color: var(--accent); }
+    .s-card.hi .lbl, .s-card.hi .val { color: #fff; }
+    .s-card.cor-card { background: var(--cor-bg); border-color: #a8d5b5; }
+    .s-card.cor-card .val { color: var(--cor); }
+
+    /* filters */
+    .filters { display: flex; gap: .5rem; padding: .4rem 1rem .5rem; max-width: 600px; margin: 0 auto; flex-wrap: wrap; }
+    .filters input, .filters select { flex: 1; min-width: 100px; border: 1px solid var(--border); background: var(--card); border-radius: 9px; padding: .5rem .7rem; font-size: .83rem; color: var(--text); outline: none; }
+    .filters input:focus, .filters select:focus { border-color: var(--accent); }
+
+    /* list */
+    .list { max-width: 600px; margin: 0 auto; padding: .25rem 1rem; display: flex; flex-direction: column; gap: .55rem; }
+
+    /* invoice card */
+    .inv { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .inv-head { display: flex; align-items: center; gap: .6rem; padding: .75rem .9rem .5rem; }
+    .supplier-tag { font-size: .8rem; font-weight: 600; padding: .2rem .6rem; border-radius: 6px; white-space: nowrap; }
+    .inv-date { font-size: .78rem; color: var(--muted); flex: 1; }
+    .status-badge { font-size: .72rem; font-weight: 700; padding: .2rem .55rem; border-radius: 20px; }
+    .status-badge.cor { background: var(--cor-bg); color: var(--cor); }
+    .status-badge.not { background: var(--not-bg); color: var(--not); }
+    .del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: .95rem; padding: .1rem .2rem; }
+    .del-btn:hover { color: var(--not); }
+
+    .inv-body { padding: .1rem .9rem .75rem; display: flex; gap: .75rem; align-items: flex-start; }
+
+    /* photo slots */
+    .photos { display: flex; gap: .5rem; }
+    .photo-slot { display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+    .photo-slot .slot-lbl { font-size: .65rem; color: var(--muted); font-weight: 600; letter-spacing: .03em; }
+    .photo-thumb {
+      width: 54px; height: 54px; border-radius: 9px;
+      border: 1.5px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; cursor: pointer; overflow: hidden;
+      background: var(--bg); text-decoration: none;
+      transition: border-color .15s;
+      position: relative;
+    }
+    .photo-thumb:hover { border-color: var(--accent); }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+    .photo-thumb.has-link { border-style: solid; border-color: #c8e6c9; background: #f1f8f1; }
+
+    .inv-info { flex: 1; min-width: 0; }
+    .inv-person { font-size: .78rem; color: var(--muted); margin-bottom: .2rem; }
+    .inv-note { font-size: .82rem; color: var(--text); line-height: 1.4; }
+    .inv-note.empty { color: var(--muted); font-style: italic; }
+
+    /* empty */
+    .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+    .empty .big { font-size: 2.5rem; margin-bottom: .5rem; }
+
+    /* FAB */
+    .fab { position: fixed; bottom: 1.4rem; right: 1.1rem; background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: .8rem 1.3rem; font-size: .9rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(250,123,23,.4); z-index: 20; display: flex; align-items: center; gap: .4rem; transition: transform .12s; }
+    .fab:active { transform: scale(.95); }
+
+    /* overlay + modal */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 30; align-items: flex-end; justify-content: center; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--card); border-radius: 22px 22px 0 0; width: 100%; max-width: 520px; padding: 1.1rem 1.2rem 2rem; animation: up .2s ease; max-height: 90vh; overflow-y: auto; }
+    @keyframes up { from { transform: translateY(50px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto .9rem; }
+    .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: .9rem; }
+    .field { margin-bottom: .7rem; }
+    .field label { display: block; font-size: .74rem; color: var(--muted); margin-bottom: .28rem; font-weight: 500; }
+    .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: .55rem .75rem; font-size: .88rem; color: var(--text); background: var(--bg); outline: none; font-family: inherit; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: var(--card); }
+    .field textarea { resize: vertical; min-height: 55px; }
+    .row2 { display: flex; gap: .6rem; }
+    .row2 .field { flex: 1; }
+
+    /* photo upload section */
+    .photo-upload-row { display: flex; gap: .75rem; margin-bottom: .7rem; }
+    .photo-upload-box { flex: 1; }
+    .photo-upload-box .pu-lbl { font-size: .74rem; color: var(--muted); margin-bottom: .28rem; font-weight: 500; }
+    .pu-area { border: 1.5px dashed var(--border); border-radius: 9px; background: var(--bg); padding: .5rem; display: flex; flex-direction: column; align-items: center; gap: .4rem; cursor: pointer; position: relative; transition: border-color .15s; }
+    .pu-area:hover { border-color: var(--accent); }
+    .pu-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .pu-area .pu-icon { font-size: 1.3rem; }
+    .pu-area .pu-text { font-size: .72rem; color: var(--muted); text-align: center; }
+    .pu-preview { width: 100%; height: 70px; object-fit: cover; border-radius: 7px; display: none; }
+    .drive-link-row { display: flex; gap: .4rem; align-items: center; margin-top: .3rem; }
+    .drive-link-row input { flex: 1; font-size: .75rem; padding: .35rem .55rem; }
+    .drive-icon { font-size: .9rem; }
+
+    .modal-actions { display: flex; gap: .6rem; margin-top: .9rem; }
+    .btn-save { flex: 1; background: var(--accent); color: #fff; border: none; border-radius: 11px; padding: .75rem; font-size: .92rem; font-weight: 600; cursor: pointer; }
+    .btn-cancel { background: var(--bg); color: var(--muted); border: 1px solid var(--border); border-radius: 11px; padding: .75rem 1rem; font-size: .92rem; cursor: pointer; }
+
+    /* supplier colors */
+    .sup-foodoo    { background: #f3e8ff; color: #6d28d9; }
+    .sup-metro     { background: #e0f2fe; color: #0369a1; }
+    .sup-sergali   { background: #fff7ed; color: #c2410c; }
+    .sup-ayakaz    { background: #f0fdf4; color: #166534; }
+    .sup-kazbeef   { background: #fdf2f8; color: #9d174d; }
+    .sup-foodhouse { background: #f0fdfa; color: #0f766e; }
+    .sup-grillpro  { background: #fef9c3; color: #854d0e; }
+    .sup-stock     { background: #f1f5f9; color: #475569; }
+    .sup-default   { background: #f3f4f6; color: #374151; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <nav class="crumbs">
+    <a href="index.html">Главная</a>
+    <span class="csep">/</span>
+    <span class="ccur">🧾 Накладные</span>
+  </nav>
+  <div class="topbar-actions">
+    <button class="icon-btn" onclick="exportCSV()">📋 CSV</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="s-card">
+    <div class="lbl">Всего</div>
+    <div class="val" id="sTot">0</div>
+  </div>
+  <div class="s-card cor-card">
+    <div class="lbl">✅ COR</div>
+    <div class="val" id="sCor">0</div>
+  </div>
+  <div class="s-card" style="background:#fce8e6;border-color:#f4b8b5;">
+    <div class="lbl" style="color:#999">❌ NOT</div>
+    <div class="val" id="sNot" style="color:var(--not)">0</div>
+  </div>
+</div>
+
+<div class="filters">
+  <input type="text" id="fsearch" placeholder="🔍 Поставщик..." oninput="render()">
+  <select id="fstatus" onchange="render()">
+    <option value="">Все статусы</option>
+    <option value="COR">✅ COR</option>
+    <option value="NOT">❌ NOT</option>
+  </select>
+  <select id="fmonth" onchange="render()">
+    <option value="">Все месяцы</option>
+  </select>
+</div>
+
+<div class="list" id="list"></div>
+
+<button class="fab" onclick="openModal()">＋ Накладная</button>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="bgClick(event)">
+  <div class="modal">
+    <div class="handle"></div>
+    <h2>Новая накладная</h2>
+
+    <div class="row2">
+      <div class="field">
+        <label>Поставщик</label>
+        <select id="f-sup">
+          <option>FooDoo</option>
+          <option>Metro</option>
+          <option>Sergali</option>
+          <option>Ayakaz</option>
+          <option>KazBeef</option>
+          <option>Foodhouse</option>
+          <option>GrillPro</option>
+          <option>Stock Transfer</option>
+          <option>Другой...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Дата</label>
+        <input type="date" id="f-date">
+      </div>
+    </div>
+
+    <div id="custom-sup-wrap" class="field" style="display:none">
+      <label>Название поставщика</label>
+      <input type="text" id="f-sup-custom" placeholder="Введите название">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Статус</label>
+        <select id="f-status">
+          <option value="COR">✅ COR — верно</option>
+          <option value="NOT">❌ NOT — проблема</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ответственный</label>
+        <input type="text" id="f-person" placeholder="Yeldar, Арафат...">
+      </div>
+    </div>
+
+    <!-- Photo uploads -->
+    <div class="photo-upload-row">
+      <!-- Черновик -->
+      <div class="photo-upload-box">
+        <div class="pu-lbl">📷 Черновик (X)</div>
+        <div class="pu-area" id="pu-x">
+          <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(event,'x')">
+          <img class="pu-preview" id="prev-x">
+          <div class="pu-icon" id="pu-x-icon">📷</div>
+          <div class="pu-text" id="pu-x-text">Фото товара</div>
+        </div>
+        <div class="drive-link-row">
+          <span class="drive-icon">🔗</span>
+          <input type="url" id="f-link-x" placeholder="Google Drive ссылка">
+        </div>
+      </div>
+      <!-- Чистовик -->
+      <div class="photo-upload-box">
+        <div class="pu-lbl">📄 Чистовик (✓)</div>
+        <div class="pu-area" id="pu-v">
+          <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(event,'v')">
+          <img class="pu-preview" id="prev-v">
+          <div class="pu-icon" id="pu-v-icon">📄</div>
+          <div class="pu-text" id="pu-v-text">Финальный счёт</div>
+        </div>
+        <div class="drive-link-row">
+          <span class="drive-icon">🔗</span>
+          <input type="url" id="f-link-v" placeholder="Google Drive ссылка">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Примечание</label>
+      <textarea id="f-note" placeholder="Необязательно..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-save" onclick="save()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'auyl_invoices_v2';
+let data = [];
+let photoX = null, photoV = null; // base64 thumbnails
+
+// ── Persist ──
+function load() {
+  try { data = JSON.parse(localStorage.getItem(KEY)) || []; } catch { data = []; }
+}
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { alert('Хранилище заполнено — удалите старые накладные'); }
+}
+
+// ── Supplier styling ──
+const SUP_CLASS = {
+  'foodoo':'sup-foodoo','metro':'sup-metro','sergali':'sup-sergali',
+  'ayakaz':'sup-ayakaz','kazbeef':'sup-kazbeef','foodhouse':'sup-foodhouse',
+  'grillpro':'sup-grillpro','stock transfer':'sup-stock'
+};
+function supClass(name) {
+  return SUP_CLASS[(name||'').toLowerCase()] || 'sup-default';
+}
+
+// ── Month filter ──
+function buildMonths() {
+  const sel = document.getElementById('fmonth');
+  const cur = sel.value;
+  const ms = [...new Set(data.map(i => i.date.slice(0,7)))].sort().reverse();
+  sel.innerHTML = '<option value="">Все месяцы</option>';
+  ms.forEach(m => {
+    const [y,mo] = m.split('-');
+    const lbl = new Date(y, mo-1).toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+    sel.innerHTML += `<option value="${m}"${m===cur?' selected':''}>${lbl}</option>`;
+  });
+}
+
+// ── Render ──
+function render() {
+  const q = document.getElementById('fsearch').value.toLowerCase();
+  const fs = document.getElementById('fstatus').value;
+  const fm = document.getElementById('fmonth').value;
+
+  const filtered = data.filter(i =>
+    (!q || i.supplier.toLowerCase().includes(q)) &&
+    (!fs || i.status === fs) &&
+    (!fm || i.date.startsWith(fm))
+  ).sort((a,b) => b.date.localeCompare(a.date));
+
+  const cor = filtered.filter(i=>i.status==='COR').length;
+  const not = filtered.filter(i=>i.status==='NOT').length;
+  document.getElementById('sTot').textContent = filtered.length;
+  document.getElementById('sCor').textContent = cor;
+  document.getElementById('sNot').textContent = not;
+
+  const list = document.getElementById('list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="big">🧾</div>Накладных нет.<br>Нажмите «＋ Накладная» чтобы добавить.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(inv => `
+    <div class="inv">
+      <div class="inv-head">
+        <span class="supplier-tag ${supClass(inv.supplier)}">${esc(inv.supplier)}</span>
+        <span class="inv-date">${fmtDate(inv.date)}</span>
+        <span class="status-badge ${inv.status==='COR'?'cor':'not'}">${inv.status==='COR'?'✅ COR':'❌ NOT'}</span>
+        <button class="del-btn" onclick="del('${inv.id}')">🗑</button>
+      </div>
+      <div class="inv-body">
+        <div class="photos">
+          <div class="photo-slot">
+            <span class="slot-lbl">ЧЕРН.</span>
+            ${thumbHtml(inv.thumbX, inv.linkX)}
+          </div>
+          <div class="photo-slot">
+            <span class="slot-lbl">ЧИСТ.</span>
+            ${thumbHtml(inv.thumbV, inv.linkV)}
+          </div>
+        </div>
+        <div class="inv-info">
+          ${inv.person ? `<div class="inv-person">👤 ${esc(inv.person)}</div>` : ''}
+          <div class="inv-note ${inv.note?'':'empty'}">${inv.note ? esc(inv.note) : 'Без примечания'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function thumbHtml(thumb, link) {
+  if (thumb && link) {
+    return `<a href="${esc(link)}" target="_blank" class="photo-thumb has-link"><img src="${thumb}"></a>`;
+  } else if (thumb) {
+    return `<div class="photo-thumb has-link"><img src="${thumb}"></div>`;
+  } else if (link) {
+    return `<a href="${esc(link)}" target="_blank" class="photo-thumb has-link" style="font-size:1.4rem">🔗</a>`;
+  } else {
+    return `<div class="photo-thumb">—</div>`;
+  }
+}
+
+// ── Photo handling ──
+function handlePhoto(e, slot) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // Compress to thumbnail
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const max = 300;
+      const ratio = Math.min(max/img.width, max/img.height);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const thumb = canvas.toDataURL('image/jpeg', 0.7);
+      if (slot === 'x') {
+        photoX = thumb;
+        const p = document.getElementById('prev-x');
+        p.src = thumb; p.style.display = 'block';
+        document.getElementById('pu-x-icon').style.display='none';
+        document.getElementById('pu-x-text').style.display='none';
+      } else {
+        photoV = thumb;
+        const p = document.getElementById('prev-v');
+        p.src = thumb; p.style.display = 'block';
+        document.getElementById('pu-v-icon').style.display='none';
+        document.getElementById('pu-v-text').style.display='none';
+      }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Save ──
+function save() {
+  const supSel = document.getElementById('f-sup').value;
+  const supplier = supSel === 'Другой...'
+    ? document.getElementById('f-sup-custom').value.trim()
+    : supSel;
+  const date   = document.getElementById('f-date').value;
+  const status = document.getElementById('f-status').value;
+  const person = document.getElementById('f-person').value.trim();
+  const note   = document.getElementById('f-note').value.trim();
+  const linkX  = document.getElementById('f-link-x').value.trim();
+  const linkV  = document.getElementById('f-link-v').value.trim();
+
+  if (!supplier || !date) { alert('Укажите поставщика и дату'); return; }
+
+  data.push({ id: Date.now().toString(), supplier, date, status, person, note, linkX, linkV, thumbX: photoX, thumbV: photoV });
+  persist();
+  buildMonths();
+  render();
+  closeModal();
+}
+
+function del(id) {
+  if (!confirm('Удалить накладную?')) return;
+  data = data.filter(i => i.id !== id);
+  persist();
+  buildMonths();
+  render();
+}
+
+// ── Modal ──
+function openModal() {
+  photoX = null; photoV = null;
+  ['prev-x','prev-v'].forEach(id => { const el=document.getElementById(id); el.src=''; el.style.display='none'; });
+  ['pu-x-icon','pu-x-text','pu-v-icon','pu-v-text'].forEach(id => document.getElementById(id).style.display='');
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-person').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-link-x').value = '';
+  document.getElementById('f-link-v').value = '';
+  document.getElementById('f-sup').value = 'FooDoo';
+  document.getElementById('custom-sup-wrap').style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function bgClick(e) { if (e.target===document.getElementById('overlay')) closeModal(); }
+
+// ── Supplier custom field toggle ──
+document.getElementById('f-sup').addEventListener('change', function() {
+  document.getElementById('custom-sup-wrap').style.display = this.value==='Другой...' ? '' : 'none';
+});
+
+// ── Export ──
+function exportCSV() {
+  if (!data.length) { alert('Нет данных'); return; }
+  const rows = [['Поставщик','Дата','Статус','Ответственный','Примечание','Черновик (ссылка)','Чистовик (ссылка)']];
+  data.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(i => {
+    rows.push([i.supplier, i.date, i.status, i.person, i.note, i.linkX, i.linkV]);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `nakładnye_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── Helpers ──
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day}.${m}.${y}`;
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ──
+load();
+buildMonths();
+render();
+</script>
+<footer style="text-align:center;padding:1.6rem 1rem 2.2rem;color:#bbb;font-size:.72rem;letter-spacing:.02em;line-height:1.5">Persolem v0.1 · Yeldar Akimkhan · eldar@chef.net</footer>
+</body>
+</html>

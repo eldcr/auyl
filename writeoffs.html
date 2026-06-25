@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Auyl · Списания</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--acc:#ea4335;--bg:#f5f5f3;--card:#fff;--brd:#e8e8e6;--txt:#111;--mut:#999}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+
+    /* ─── LIST VIEW ─── */
+    #vList{padding-bottom:5rem}
+    .topbar{display:flex;align-items:center;gap:.75rem;padding:1.1rem 1rem .8rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--brd)}
+    .back{text-decoration:none;color:var(--acc);font-size:1.3rem}
+    .topbar h1{font-size:1.05rem;font-weight:700;flex:1}
+    .crumbs{flex:1;display:flex;align-items:center;gap:.4rem;font-size:1rem;font-weight:700;min-width:0}
+    .crumbs a{color:var(--acc);text-decoration:none;font-weight:600}
+    .crumbs a:hover{text-decoration:underline}
+    .crumbs .csep{color:var(--mut);font-weight:400}
+    .crumbs .ccur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .summary{display:flex;gap:.6rem;padding:.75rem 1rem .4rem;max-width:600px;margin:0 auto}
+    .sc{flex:1;background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:.65rem .85rem}
+    .sc .lb{font-size:.7rem;color:var(--mut)}
+    .sc .vl{font-size:1.1rem;font-weight:700;margin-top:.1rem}
+    .sc.hi{background:var(--acc);border-color:var(--acc)}
+    .sc.hi .lb,.sc.hi .vl{color:#fff}
+    .rlist{max-width:600px;margin:0 auto;padding:.5rem 1rem;display:flex;flex-direction:column;gap:.55rem}
+    .rcard{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem;position:relative;overflow:hidden}
+    .rcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);border-radius:14px 0 0 14px}
+    .ri{flex:1}
+    .ri .rd{font-weight:700;font-size:.95rem}
+    .ri .rs{font-size:.77rem;color:var(--mut);margin-top:.1rem}
+    .rac{display:flex;gap:.4rem}
+    .rbtn{background:none;border:1px solid var(--brd);border-radius:8px;padding:.3rem .6rem;font-size:.78rem;cursor:pointer;color:var(--mut)}
+    .rbtn.d:hover{color:var(--acc);border-color:var(--acc)}
+    .empty{text-align:center;color:var(--mut);padding:3rem 1rem}
+    .empty .big{font-size:2.5rem;margin-bottom:.5rem}
+    .fab{position:fixed;bottom:1.4rem;right:1.1rem;background:var(--acc);color:#fff;border:none;border-radius:50px;padding:.8rem 1.3rem;font-size:.9rem;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(234,67,53,.35);z-index:20;display:flex;align-items:center;gap:.4rem;transition:transform .12s}
+    .fab:active{transform:scale(.95)}
+
+    /* ─── FORM VIEW ─── */
+    #vForm{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto}
+    .ftopbar{display:flex;align-items:center;justify-content:space-between;padding:1rem;background:var(--bg);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:10}
+    .ftopbar .ft{font-weight:700;font-size:.98rem}
+    .bclose{background:none;border:none;font-size:1.1rem;color:var(--mut);cursor:pointer;padding:.3rem .5rem}
+    .bsave{background:var(--acc);color:#fff;border:none;border-radius:10px;padding:.45rem .9rem;font-size:.88rem;font-weight:600;cursor:pointer}
+    .fbody{padding:.75rem 1rem 4rem;max-width:600px;margin:0 auto}
+
+    /* header */
+    .fhdr{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.9rem 1rem;margin-bottom:.7rem;display:flex;gap:.7rem;flex-wrap:wrap}
+    .fhf{flex:1;min-width:140px}
+    .fhf label{display:block;font-size:.72rem;color:var(--mut);margin-bottom:.25rem;font-weight:500}
+    .fhf input{width:100%;border:1px solid var(--brd);border-radius:8px;padding:.5rem .65rem;font-size:.88rem;color:var(--txt);background:var(--bg);outline:none;font-family:inherit}
+    .fhf input:focus{border-color:var(--acc)}
+
+    /* section */
+    .sec{background:var(--card);border:1px solid var(--brd);border-radius:14px;margin-bottom:.65rem;overflow:hidden}
+    .shead{padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between}
+    .stitle{font-size:.85rem;font-weight:700}
+    .sart{font-size:.72rem;opacity:.8;margin-left:.3rem}
+    .sadd{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:7px;padding:.18rem .5rem;font-size:.73rem;font-weight:600;cursor:pointer;white-space:nowrap;color:inherit}
+
+    /* rows */
+    .irow{display:flex;align-items:center;gap:.4rem;padding:.38rem .9rem;border-top:1px solid var(--brd)}
+    .iname{flex:1;font-size:.82rem}
+    .iname.ed{border:none;border-radius:7px;padding:.28rem .45rem;background:var(--bg);outline:none;font-family:inherit;font-size:.82rem;color:var(--txt);min-width:0}
+    .iname.ed:focus{background:#efefed}
+    .iqty{width:68px;border:1px solid var(--brd);border-radius:7px;padding:.28rem .45rem;font-size:.84rem;text-align:right;background:var(--bg);outline:none;font-family:inherit;color:var(--txt)}
+    .iqty:focus{border-color:var(--acc)}
+    .iunit{width:52px;border:1px solid var(--brd);border-radius:7px;padding:.28rem .35rem;font-size:.74rem;background:var(--bg);outline:none;font-family:inherit;color:var(--txt)}
+    .idel{background:none;border:none;color:#ddd;font-size:.9rem;cursor:pointer;padding:.1rem;flex-shrink:0}
+    .idel:hover{color:var(--acc)}
+    .sublbl{padding:.45rem .9rem .2rem;font-size:.73rem;font-weight:700;color:var(--mut);background:#f8f8f6;border-top:1px solid var(--brd);letter-spacing:.02em}
+    .subaddbtn{display:flex;justify-content:flex-start;padding:.35rem .9rem;border-top:1px solid var(--brd);background:#fafaf8}
+    .subaddbtn button{background:none;border:1px dashed var(--brd);border-radius:7px;padding:.22rem .6rem;font-size:.74rem;color:var(--mut);cursor:pointer}
+    .subaddbtn button:hover{border-color:var(--acc);color:var(--acc)}
+
+    /* signatures */
+    .sigs{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:.9rem 1rem;margin-bottom:.65rem}
+    .sigs h3{font-size:.8rem;color:var(--mut);margin-bottom:.6rem;font-weight:600}
+    .sigrow{display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem}
+    .sigrow label{font-size:.82rem;width:95px;flex-shrink:0;color:var(--mut)}
+    .sigrow input{flex:1;border:none;border-bottom:1px solid var(--brd);padding:.3rem 0;font-size:.88rem;background:none;outline:none;font-family:inherit;color:var(--txt)}
+    .sigrow input:focus{border-bottom-color:var(--acc)}
+
+    .exprow{margin-top:.3rem}
+    .bexp{width:100%;background:#1a73e8;color:#fff;border:none;border-radius:12px;padding:.78rem;font-size:.92rem;font-weight:600;cursor:pointer}
+    .bexp:active{opacity:.85}
+  </style>
+</head>
+<body>
+
+<!-- ══════════ LIST ══════════ -->
+<div id="vList">
+  <div class="topbar">
+    <nav class="crumbs">
+      <a href="index.html">Главная</a>
+      <span class="csep">/</span>
+      <span class="ccur">🗑️ Списания</span>
+    </nav>
+  </div>
+  <div class="summary">
+    <div class="sc"><div class="lb">Всего записей</div><div class="vl" id="sTot">0</div></div>
+    <div class="sc hi"><div class="lb">В этом месяце</div><div class="vl" id="sMon">0</div></div>
+  </div>
+  <div class="rlist" id="rList"></div>
+  <button class="fab" onclick="newRec()">＋ Новый день</button>
+</div>
+
+<!-- ══════════ FORM ══════════ -->
+<div id="vForm">
+  <div class="ftopbar">
+    <button class="bclose" onclick="closeForm()">✕</button>
+    <span class="ft">Списание</span>
+    <button class="bsave" onclick="saveRec()">Сохранить</button>
+  </div>
+  <div class="fbody">
+    <div class="fhdr">
+      <div class="fhf"><label>Дата</label><input type="date" id="fDate"></div>
+      <div class="fhf"><label>Су-шефы</label><input type="text" id="fChefs" placeholder="Гаухар, Ельдар..."></div>
+    </div>
+    <div id="fSections"></div>
+    <div class="sigs">
+      <h3>Подписи</h3>
+      <div class="sigrow"><label>Шеф-повар:</label><input type="text" id="fChef" placeholder="ФИО"></div>
+      <div class="sigrow"><label>Директор:</label><input type="text" id="fDir" placeholder="ФИО"></div>
+    </div>
+    <div class="exprow"><button class="bexp" onclick="doExport()">📊 Экспорт / Печать</button></div>
+  </div>
+</div>
+
+<script>
+// ════ TEMPLATE ════
+const SECS = [
+  { id:'sluzh', title:'Служебное питание', art:null, bg:'#2e7d32',
+    items:[{n:'Сахар',u:'кг'},{n:'Лук репчатый п/ф',u:'кг'},{n:'Картофель п/ф',u:'кг'},
+           {n:'Морковь п/ф',u:'кг'},{n:'Яйцо',u:'шт'},{n:'Соль',u:'г'},
+           {n:'Масло растительное',u:'л'},{n:'Мука в/с',u:'кг'},
+           {n:'Курица тушка кус вкус',u:'кг'},{n:'Помидоры',u:'г'},
+           {n:'Черри',u:'г'},{n:'Сметана',u:'г'},{n:'Петрушка',u:'г'},
+           {n:'Перец болгарский перец',u:'г'}] },
+
+  { id:'porcha', title:'Порча', art:'124 статья', bg:'#b71c1c',
+    items:[{n:'Куриный бульон п/ф',u:'г'},{n:'Жая бульон п/ф',u:'г'},
+           {n:'Лепешка тандыр п/ф',u:'шт'},{n:'Самса батат п/ф',u:'шт'},
+           {n:'Самса с кониной п/ф',u:'шт'},{n:'Самса со шпинатом п/ф',u:'шт'},
+           {n:'Плов п/ф',u:'кг'},{n:'Плов мясо п/ф',u:'г'},
+           {n:'Ромэско соус п/ф',u:'г'}] },
+
+  { id:'pere', title:'Перемещения', art:null, bg:'#1565c0',
+    sub:[{id:'b2k',lbl:'С бара на кухню:'},{id:'k2b',lbl:'С кухни на бар:'}] },
+
+  { id:'open', title:'Open Food', art:null, bg:'#e65100',
+    items:[{n:'Вяленая конина',u:'г'}] },
+
+  { id:'ukr', title:'Украшения', art:'513 статья', bg:'#6a1b9a',
+    items:[{n:'Бауырсаки',u:'порции'}] },
+
+  { id:'mkt', title:'Маркетинг', art:'508 статья', bg:'#00695c',
+    items:[{n:'Чак-чак',u:'кг'}] },
+
+  { id:'menu', title:'Меню', art:'512 статья', bg:'#0277bd', items:[] },
+  { id:'otr',  title:'Отработки', art:'129 статья', bg:'#e65100', items:[] },
+
+  { id:'nev', title:'Невозвратные отходы', art:null, bg:'#546e7a', unitHdr:'кг/л',
+    items:[{n:'Масло растительное',u:'л'}] },
+];
+const UNITS = ['кг','г','л','мл','шт','порции','уп'];
+const KEY = 'auyl_wo_v3';
+let records=[], editId=null, fs={};
+
+// ════ STORAGE ════
+function load(){try{records=JSON.parse(localStorage.getItem(KEY))||[];}catch{records=[];}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(records));}catch{alert('Хранилище заполнено');}}
+
+// ════ LIST ════
+function renderList(){
+  const now=new Date(), mon=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('sTot').textContent=records.length;
+  document.getElementById('sMon').textContent=records.filter(r=>r.date.startsWith(mon)).length;
+  const el=document.getElementById('rList');
+  const sorted=[...records].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sorted.length){el.innerHTML=`<div class="empty"><div class="big">📋</div>Записей нет.<br>Нажмите «＋ Новый день»</div>`;return;}
+  el.innerHTML=sorted.map(r=>`
+    <div class="rcard">
+      <div class="ri">
+        <div class="rd">${fmtD(r.date)}</div>
+        <div class="rs">${r.chefs?'👨‍🍳 '+esc(r.chefs):'Су-шефы не указаны'}</div>
+      </div>
+      <div class="rac">
+        <button class="rbtn" onclick="editRec('${r.id}')">✏️</button>
+        <button class="rbtn" onclick="exportById('${r.id}')">📊</button>
+        <button class="rbtn d" onclick="delRec('${r.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ════ FORM STATE INIT ════
+function initFs(){
+  fs={date:'',chefs:'',chef:'',dir:''};
+  SECS.forEach(s=>{
+    if(s.sub){ s.sub.forEach(sb=>{fs[sb.id]={custom:[]};});}
+    else{ fs[s.id]={items:s.items.map(i=>({n:i.n,u:i.u,q:''})),custom:[]}; }
+  });
+}
+function fsFromRec(r){
+  fs={date:r.date||'',chefs:r.chefs||'',chef:r.chef||'',dir:r.dir||''};
+  SECS.forEach(s=>{
+    if(s.sub){
+      s.sub.forEach(sb=>{ fs[sb.id]=r[sb.id]||{custom:[]}; });
+    } else {
+      const sv=r[s.id]||{};
+      fs[s.id]={
+        items:s.items.map((t,i)=>({n:t.n,u:t.u,q:(sv.items&&sv.items[i])?sv.items[i].q:''})),
+        custom:(sv.custom)||[]
+      };
+    }
+  });
+}
+function fsToRec(){
+  const rec={id:editId||Date.now().toString(),date:fs.date,chefs:fs.chefs,chef:fs.chef,dir:fs.dir};
+  SECS.forEach(s=>{
+    if(s.sub){ s.sub.forEach(sb=>{rec[sb.id]=fs[sb.id];}); }
+    else{ rec[s.id]={items:fs[s.id].items,custom:fs[s.id].custom}; }
+  });
+  return rec;
+}
+
+// ════ RENDER FORM ════
+function renderSecs(){
+  document.getElementById('fSections').innerHTML=SECS.map(s=>renderSec(s)).join('');
+}
+const unitOpts=u=>UNITS.map(x=>`<option${x===u?' selected':''}>${x}</option>`).join('');
+
+function renderSec(s){
+  const hs=`background:${s.bg};color:#fff;`;
+  const artH=s.art?`<span class="sart">${s.art}</span>`:'';
+
+  if(s.sub){
+    const subsH=s.sub.map(sb=>{
+      const rows=(fs[sb.id]?.custom||[]).map((c,i)=>custRow(sb.id,i,c.n,c.q,c.u)).join('');
+      return `<div class="sublbl">${sb.lbl}</div>${rows}
+        <div class="subaddbtn"><button onclick="addC('${sb.id}')">+ Добавить позицию</button></div>`;
+    }).join('');
+    return `<div class="sec"><div class="shead" style="${hs}"><span class="stitle">${s.title}</span>${artH}</div>${subsH}</div>`;
+  }
+
+  const st=fs[s.id];
+  const fixH=(st.items||[]).map((it,i)=>`
+    <div class="irow">
+      <span class="iname">${esc(it.n)}</span>
+      <input class="iqty" type="number" value="${it.q||''}" min="0" step="0.001" placeholder="0"
+        oninput="fs['${s.id}'].items[${i}].q=this.value">
+      <select class="iunit" onchange="fs['${s.id}'].items[${i}].u=this.value">${unitOpts(it.u)}</select>
+    </div>`).join('');
+  const cusH=(st.custom||[]).map((c,i)=>custRow(s.id,i,c.n,c.q,c.u)).join('');
+
+  return `<div class="sec">
+    <div class="shead" style="${hs}">
+      <span class="stitle">${s.title}${artH}</span>
+      <button class="sadd" onclick="addC('${s.id}')">+ Добавить</button>
+    </div>
+    ${fixH}${cusH}
+  </div>`;
+}
+function custRow(sid,i,n,q,u){
+  return `<div class="irow">
+    <input class="iname ed" value="${esc(n)}" placeholder="Наименование" oninput="fs['${sid}'].custom[${i}].n=this.value">
+    <input class="iqty" type="number" value="${q||''}" min="0" step="0.001" placeholder="0" oninput="fs['${sid}'].custom[${i}].q=this.value">
+    <select class="iunit" onchange="fs['${sid}'].custom[${i}].u=this.value">${unitOpts(u||'кг')}</select>
+    <button class="idel" onclick="delC('${sid}',${i})">✕</button>
+  </div>`;
+}
+function addC(sid){
+  if(!fs[sid]) fs[sid]={custom:[]};
+  fs[sid].custom.push({n:'',q:'',u:'кг'});
+  renderSecs();
+}
+function delC(sid,i){ fs[sid].custom.splice(i,1); renderSecs(); }
+
+// ════ OPEN/CLOSE FORM ════
+function newRec(){
+  editId=null; initFs();
+  fs.date=new Date().toISOString().slice(0,10);
+  openForm();
+}
+function editRec(id){
+  const r=records.find(x=>x.id===id); if(!r) return;
+  editId=id; fsFromRec(r); openForm();
+}
+function openForm(){
+  document.getElementById('fDate').value=fs.date;
+  document.getElementById('fChefs').value=fs.chefs;
+  document.getElementById('fChef').value=fs.chef;
+  document.getElementById('fDir').value=fs.dir;
+  renderSecs();
+  document.getElementById('vForm').style.display='block';
+  document.getElementById('vForm').scrollTop=0;
+  document.getElementById('vList').style.display='none';
+}
+function closeForm(){
+  document.getElementById('vForm').style.display='none';
+  document.getElementById('vList').style.display='';
+}
+function saveRec(){
+  fs.date=document.getElementById('fDate').value;
+  fs.chefs=document.getElementById('fChefs').value;
+  fs.chef=document.getElementById('fChef').value;
+  fs.dir=document.getElementById('fDir').value;
+  if(!fs.date){alert('Укажите дату');return;}
+  const rec=fsToRec();
+  if(editId){const i=records.findIndex(r=>r.id===editId);if(i>=0)records[i]=rec;}
+  else records.push(rec);
+  persist(); closeForm(); renderList();
+}
+function delRec(id){
+  if(!confirm('Удалить запись?'))return;
+  records=records.filter(r=>r.id!==id);
+  persist(); renderList();
+}
+
+// ════ EXPORT ════
+function doExport(){
+  fs.date=document.getElementById('fDate').value;
+  fs.chefs=document.getElementById('fChefs').value;
+  fs.chef=document.getElementById('fChef').value;
+  fs.dir=document.getElementById('fDir').value;
+  genExport(fs);
+}
+function exportById(id){
+  const r=records.find(x=>x.id===id); if(!r) return;
+  const tmp={date:r.date,chefs:r.chefs,chef:r.chef,dir:r.dir};
+  SECS.forEach(s=>{
+    if(s.sub){s.sub.forEach(sb=>{tmp[sb.id]=r[sb.id]||{custom:[]};});}
+    else{tmp[s.id]=r[s.id]||{items:s.items.map(i=>({n:i.n,u:i.u,q:''})),custom:[]};}
+  });
+  genExport(tmp);
+}
+
+function getRows(st, tmpl){
+  const items=(st?.items||tmpl.map(i=>({n:i.n,u:i.u,q:''}))).map(i=>[i.n, i.q?`${i.q} ${i.u}`:'']);
+  const custom=(st?.custom||[]).filter(c=>c.n).map(c=>[c.n, c.q?`${c.q} ${c.u}`:'']);
+  return [...items,...custom];
+}
+function getCust(st){ return (st?.custom||[]).filter(c=>c.n).map(c=>[c.n, c.q?`${c.q} ${c.u}`:'']); }
+
+function genExport(d){
+  const sluzh=getRows(d.sluzh, SECS[0].items);
+  const porcha=getRows(d.porcha, SECS[1].items);
+  const b2k=getCust(d.b2k), k2b=getCust(d.k2b);
+  const openF=getRows(d.open, SECS[3].items);
+  const ukr=getRows(d.ukr, SECS[4].items);
+  const mkt=getRows(d.mkt, SECS[5].items);
+  const menu=getRows(d.menu,[]); const otr=getRows(d.otr,[]);
+  const nev=getRows(d.nev, SECS[8].items);
+
+  // Build 4 columns matching the spreadsheet layout
+  const c1=[...sluzh];
+  const c2=[
+    ...porcha,['',''],
+    ['Перемещения','кг'],['С бара на кухню:',''],
+    ...b2k,...Array(Math.max(0,3-b2k.length)).fill(['','']),
+    ['С кухни на бар:',''],...k2b,...Array(Math.max(0,3-k2b.length)).fill(['',''])
+  ];
+  const c3=[
+    ...openF,['',''],
+    ['Украшения (513 статья)','кг'],...ukr,['',''],
+    ['Маркетинг (508 статья)','кг'],...mkt
+  ];
+  const c4=[
+    ['Меню (512 статья)','кг'],...menu,
+    ...Array(Math.max(0,4-menu.length)).fill(['','']),
+    ['Отработки (129 статья)','кг'],...otr,
+    ...Array(Math.max(0,3-otr.length)).fill(['','']),
+    ['Невозвратные отходы','кг/л'],...nev,
+    ['',''],['',''],['',''],
+    [`Шеф-повар: ${d.chef||''}`,``],
+    [`Директор: ${d.dir||''}`,``]
+  ];
+
+  const len=Math.max(c1.length,c2.length,c3.length,c4.length);
+  const pad=a=>{while(a.length<len)a.push(['','']);return a;};
+  pad(c1);pad(c2);pad(c3);pad(c4);
+
+  const SEC_HEADS=['Перемещения','С бара','С кухни','Украшения','Маркетинг','Меню','Отработки','Невозвратные','Шеф-повар','Директор','Open Food'];
+  function cs(txt){
+    if(!txt) return '';
+    if(['Перемещения','С бара на кухню:','С кухни на бар:'].some(x=>txt.startsWith(x))) return 'background:#dae8fc;font-weight:bold;font-style:italic;';
+    if(['Украшения','Маркетинг','Open Food','Меню','Отработки','Невозвратные'].some(x=>txt.startsWith(x))) return 'background:#dae8fc;font-weight:bold;';
+    if(txt.startsWith('Шеф') || txt.startsWith('Директор')) return 'background:#fff2cc;';
+    return '';
+  }
+
+  const rows=Array.from({length:len},(_,i)=>`<tr>
+    <td style="${cs(c1[i][0])}">${c1[i][0]||'&nbsp;'}</td><td style="text-align:right;font-weight:${c1[i][1]?'bold':'normal'}">${c1[i][1]||''}</td>
+    <td style="${cs(c2[i][0])}">${c2[i][0]||'&nbsp;'}</td><td style="text-align:right;font-weight:${c2[i][1]?'bold':'normal'}">${c2[i][1]||''}</td>
+    <td style="${cs(c3[i][0])}">${c3[i][0]||'&nbsp;'}</td><td style="text-align:right;font-weight:${c3[i][1]?'bold':'normal'}">${c3[i][1]||''}</td>
+    <td style="${cs(c4[i][0])}">${c4[i][0]||'&nbsp;'}</td><td style="text-align:right;font-weight:${c4[i][1]?'bold':'normal'}">${c4[i][1]||''}</td>
+  </tr>`).join('');
+
+  const dateStr=d.date?d.date.split('-').reverse().join('.'):'';
+  const html=`<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<title>Списания ${dateStr}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11px;margin:8mm}
+  table{border-collapse:collapse;width:100%}
+  td,th{border:1px solid #888;padding:3px 6px;vertical-align:top}
+  .main-header{background:#4472c4;color:#fff;text-align:center;font-size:14px;font-weight:bold}
+  .col1{background:#d9ead3;font-weight:bold}
+  .col2{background:#f4cccc;font-weight:bold}
+  .col3{background:#fce5cd;font-weight:bold}
+  .col4{background:#d0e0f4;font-weight:bold}
+  @media print{button{display:none}}
+</style></head><body>
+<button onclick="window.print()" style="margin-bottom:8px;padding:5px 12px;cursor:pointer;font-size:12px">🖨 Печать</button>
+<table>
+  <tr><td colspan="8" class="main-header">Списания</td></tr>
+  <tr>
+    <td colspan="6"><b>Су-шефы: ${esc(d.chefs||'')}</b></td>
+    <td colspan="2" style="text-align:right"><b>Дата: ${dateStr}</b></td>
+  </tr>
+  <tr>
+    <th class="col1" colspan="2">Служебное питание&nbsp;&nbsp;кг</th>
+    <th class="col2" colspan="2">Порча (124 статья)&nbsp;&nbsp;кг</th>
+    <th class="col3" colspan="2">Open Food&nbsp;&nbsp;кг</th>
+    <th class="col4" colspan="2">Меню (512 статья)&nbsp;&nbsp;кг</th>
+  </tr>
+  ${rows}
+</table></body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+// ════ HELPERS ════
+function fmtD(d){if(!d)return'';const[y,m,dy]=d.split('-');return`${dy}.${m}.${y}`;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ════ INIT ════
+load(); renderList();
+</script>
+<footer style="text-align:center;padding:1.6rem 1rem 2.2rem;color:#bbb;font-size:.72rem;letter-spacing:.02em;line-height:1.5">Persolem v0.1 · Yeldar Akimkhan · eldar@chef.net</footer>
+</body>
+</html>
